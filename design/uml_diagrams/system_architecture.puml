@@ -1,0 +1,7 @@
+@startuml
+skinparam backgroundColor #EEEBDC
+skinparam componentStyle rectangle
+
+[Client] --> (FastAPI Backend)
+(FastAPI Backend) --> [Database]
+@enduml

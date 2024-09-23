@@ -1,0 +1,108 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Virtual environment folders
+.venv/
+env/
+venv/
+
+# Pipenv and Poetry
+Pipfile.lock
+poetry.lock
+
+# Pyenv
+.python-version
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+nosetests.xml
+.coveragerc
+.coverage
+
+# Editors and IDEs
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+.atom/
+.history/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# macOS Files
+.DS_Store
+.AppleDouble
+
+# Windows Files
+Thumbs.db
+Desktop.ini
+
+# Linux
+.sass-cache/
+.cache/
+.npm/
+
+# Temporary or Backup Files
+*~
+*.bak
+*.swp
+
+# Build systems
+*.dSYM
+*.exe
+*.out
+*.app
+*.iws
+
+# Django/Flask
+*.log
+local_settings.py
+static/
+media/
+instance/
+
+# Git hooks and refs
+.git/hooks/
+.git/refs/
+
+# Docker
+*.dockerfile
+docker-compose.override.yml
+
+# Vagrant
+.vagrant/
