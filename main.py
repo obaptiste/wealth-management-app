@@ -6,10 +6,10 @@ from passlib.context import CryptContext
 from backend import models, schemas, database
 from transformers import pipeline
 import yfinance as yf
-from .auth import authenticate_user, create_access_token, get_current_user, get_password_hash  # Ensure this is imported
+from backend.auth import authenticate_user, create_access_token, get_current_user, get_password_hash  # Ensure this is imported
 from backend.schemas import TextInput, UserOut
-from .models import User
-from .database import async_session
+from backend.models import User
+from backend.database import async_session
 
 # Create FastAPI instance
 app = FastAPI()

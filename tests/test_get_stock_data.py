@@ -2,7 +2,7 @@
 import pytest
 import httpx
 import respx
-from backend.main import get_stock_data  # Assuming your function is in stock_data.py
+from main import get_stock_data  # Assuming your function is in stock_data.py
 
 @pytest.mark.asyncio
 @respx.mock

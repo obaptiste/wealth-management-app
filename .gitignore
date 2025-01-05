@@ -106,3 +106,7 @@ docker-compose.override.yml
 
 # Vagrant
 .vagrant/
+
+# Environment files
+.env
+.env.*
