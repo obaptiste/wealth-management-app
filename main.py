@@ -26,12 +26,24 @@ async def get_db():
         yield session
         
 
-# Stock Data Endpoint
 @app.get("/stock-data/{symbol}")
 async def get_stock_data(symbol: str):
-    stock = yf.Ticker(symbol)  # Fixed typo
+    stock = yf.Ticker(symbol)
     data = stock.history(period="1mo")
-    return data.to_dict()
+    
+    # Get the last row of the DataFrame
+    if not data.empty:
+        latest_data = data.iloc[-1]
+        result = {
+            "symbol": symbol,
+            "price": latest_data["Close"],  # Last closing price
+            "change": latest_data["Close"] - latest_data["Open"],  # Price change
+        }
+    else:
+        result = {"symbol": symbol, "price": None, "change": None}
+
+    return result
+
 
 # Sentiment Analysis
 sentiment_model = pipeline("sentiment-analysis", model="ProsusAI/finbert")
