@@ -1,48 +1,73 @@
 #!/bin/bash
 
-# Start up script with detailed logging for Docker Compose services
-
+# Constants
+MAX_RETRIES=5
+RETRY_INTERVAL=10
 LOG_FILE="startup.log"
+TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 
-echo "Starting services at $(date)" | tee -a $LOG_FILE
+log_message() {
+    echo "[${TIMESTAMP}] $1" | tee -a "${LOG_FILE}"
+}
 
-# Check Docker is running
-if ! docker info >/dev/null 2>&1; then
-  echo "Docker is not running. Please start Docker and try again." | tee -a $LOG_FILE
-  exit 1
+check_service_health() {
+    local service=$1
+    local retries=0
+    
+    while [ $retries -lt $MAX_RETRIES ]; do
+        case $service in
+            "db")
+                if docker exec postgres_db pg_isready -U macmini > /dev/null 2>&1; then
+                    log_message "Database is healthy"
+                    return 0
+                fi
+                ;;
+            "backend")
+                if curl -s http://localhost:8000/health > /dev/null; then
+                    log_message "Backend service is healthy"
+                    return 0
+                fi
+                ;;
+            "frontend")
+                if curl -s http://localhost:3000 > /dev/null; then
+                    log_message "Frontend service is healthy"
+                    return 0
+                fi
+                ;;
+        esac
+        
+        retries=$((retries + 1))
+        log_message "Waiting for $service to become healthy (attempt $retries/$MAX_RETRIES)"
+        sleep $RETRY_INTERVAL
+    done
+    
+    log_message "ERROR: $service failed to become healthy after $MAX_RETRIES attempts"
+    return 1
+}
+
+cleanup() {
+    log_message "Cleaning up services..."
+    docker compose down
+}
+
+# Main script
+log_message "Starting services..."
+
+# Start services
+if ! docker compose up -d; then
+    log_message "ERROR: Failed to start services"
+    cleanup
+    exit 1
 fi
 
-# Start Docker Compose
-echo "Starting Docker Compose..." | tee -a $LOG_FILE
-docker compose up -d | tee -a $LOG_FILE
-
-# Wait for services to start
-echo "Waiting for services to start..." | tee -a $LOG_FILE
-sleep 10
-
-# Log the status of each service
-services=("db" "backend" "frontend")
-
-for service in "${services[@]}"; do
-  echo "Checking status for $service..." | tee -a $LOG_FILE
-  STATUS=$(docker inspect -f '{{.State.Status}}' "$service" 2>/dev/null)
-  
-  if [[ "$STATUS" == "running" ]]; then
-    echo "$service is running." | tee -a $LOG_FILE
-  else
-    echo "$service failed to start or is not running. Status: $STATUS" | tee -a $LOG_FILE
-  fi
+# Check health of each service
+for service in db backend frontend; do
+    log_message "Checking health of $service..."
+    if ! check_service_health $service; then
+        log_message "ERROR: Service $service failed health check"
+        cleanup
+        exit 1
+    fi
 done
 
-# Check health of database service
-echo "Checking health of database service..." | tee -a $LOG_FILE
-DB_HEALTH=$(docker inspect --format='{{json .State.Health.Status}}' db 2>/dev/null)
-
-if [[ "$DB_HEALTH" == "\"healthy\"" ]]; then
-  echo "Database service is healthy." | tee -a $LOG_FILE
-else
-  echo "Database service is not healthy. Current health status: $DB_HEALTH" | tee -a $LOG_FILE
-fi
-
-echo "Services started at $(date)" | tee -a $LOG_FILE
-echo "Startup script completed." | tee -a $LOG_FILE
+log_message "All services started successfully"

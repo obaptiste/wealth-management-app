@@ -1,7 +1,7 @@
 
 import pytest
 from httpx import AsyncClient, ASGITransport
-from main import app
+from backend.main import app
 from asgi_lifespan import LifespanManager  # Optional if you're testing app lifespan
 
 

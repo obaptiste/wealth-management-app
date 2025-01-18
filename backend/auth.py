@@ -5,12 +5,12 @@ from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends, HTTPException, status
 from typing import Optional
-from .database import async_session
-from .models import User
-from .schemas import UserCreate, TokenData
-from .config import settings
+from database import async_session
+from models import User
+from schemas import UserCreate, TokenData
+from config import settings
 from fastapi.security import OAuth2PasswordBearer
-from . import models, schemas
+import models, schemas
 
 # Settings for OAuth2 and JWT token generation
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")

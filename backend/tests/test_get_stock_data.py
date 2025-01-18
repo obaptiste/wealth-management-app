@@ -1,7 +1,7 @@
 import pytest
 import httpx
 import respx
-from main import get_stock_data  # Replace `main` with the actual module name where the function is defined
+from backend.main import get_stock_data  # Replace `main` with the actual module name where the function is defined
 
 @pytest.mark.asyncio
 @respx.mock

@@ -1,15 +1,24 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select  # Added this
+from sqlalchemy.future import select
 from passlib.context import CryptContext
-from backend import models, schemas, database
+import models, schemas, database
 from transformers import pipeline
 import yfinance as yf
-from backend.auth import authenticate_user, create_access_token, get_current_user, get_password_hash  # Ensure this is imported
-from backend.schemas import TextInput, UserOut
-from backend.models import User
-from backend.database import async_session
+from auth import authenticate_user, create_access_token, get_current_user, get_password_hash
+from schemas import TextInput, UserOut
+from models import User
+from database import async_session
+
+
+import sys
+import os
+
+# Add the root project directory to the Python path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+print("PYTHONPATH:", sys.path)  # Debugging output
 
 # Create FastAPI instance
 app = FastAPI()

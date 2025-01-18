@@ -1,6 +1,6 @@
 import pytest
 from httpx import AsyncClient, ASGITransport
-from main import app
+from backend.main import app
 from backend import models
 from backend.database import get_db
 from sqlalchemy.future import select
