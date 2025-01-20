@@ -3,24 +3,39 @@ FROM python:3.11-slim
 
 # Install system dependencies for building h5py (and similar packages)
 RUN apt-get update && apt-get install -y \
+    #bash \
     pkg-config \
     libhdf5-dev \
     build-essential \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Create app directory
 WORKDIR /app
 
-# Copy in your requirements file first to leverage Docker caching
+# Keeps Python from generating .pyc files in the container
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Turns off buffering for easier container logging
+ENV PYTHONUNBUFFERED=1
+
+ENV PYTHONPATH=/app
+
+# Copy in requirements (for Docker layer caching)
 COPY requirements.txt .
 
 # Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
-# Copy rest of the backend code
+# Copy the rest of your backend code
 COPY . .
 
+# Make sure we have the wait-for-it script
+#COPY scripts/wait-for-it.sh /app/scripts/
+#RUN chmod +x /app/scripts/wait-for-it.sh
+
+# Expose port 8000 for Uvicorn
 EXPOSE 8000
 
-# Run your backend (FastAPI example)
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Use wait-for-it.sh in CMD
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

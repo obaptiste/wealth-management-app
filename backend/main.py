@@ -1,3 +1,9 @@
+import sys
+import os
+
+# Add the root project directory to the Python path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,11 +18,6 @@ from models import User
 from database import async_session
 
 
-import sys
-import os
-
-# Add the root project directory to the Python path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 print("PYTHONPATH:", sys.path)  # Debugging output
 
@@ -34,6 +35,11 @@ async def get_db():
     async with database.async_session() as session:
         yield session
         
+
+#health check
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
 
 @app.get("/stock-data/{symbol}")
 async def get_stock_data(symbol: str):

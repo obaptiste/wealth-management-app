@@ -2,7 +2,7 @@
 services:
   # Database Service
   db:
-    image: postgres:13
+    image: postgres:13-alpine
     container_name: postgres_db
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
@@ -16,12 +16,21 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
     restart: unless-stopped
     networks:
-      - app_network
+      app_network:
+        aliases:
+          - database 
+   # Add resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
 
   # Backend Service
-  backend:
+  wealth_backend:
     build:
       context: ./backend
       dockerfile: dockerfile
@@ -29,16 +38,20 @@ services:
     ports:
       - "8000:8000"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 30s
+      test:
+        - CMD-SHELL
+        - curl -f http://localhost:8000/health || exit 1
       timeout: 10s
+      interval: 30s
       retries: 3
+      start_period: 15s
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-      - PYTHONPATH="/app"
+      - PYTHONPATH=/app
     volumes:
       - ./backend:/app
       - model_data:/app/models
+      - scripts:/app/scripts
     depends_on:
       db:
         condition: service_healthy
@@ -55,12 +68,13 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - API_URL=http://backend:8000
+      - API_URL=http://wealth_backend:8000
     volumes:
       - ./frontend:/app
       - /app/node_modules
+      - /app/.next
     depends_on:
-      backend:
+      wealth_backend:
         condition: service_healthy
     restart: unless-stopped
     networks:
@@ -69,6 +83,7 @@ services:
 volumes:
   postgres_data:
   model_data:
+  scripts:
 
 networks:
   app_network:
