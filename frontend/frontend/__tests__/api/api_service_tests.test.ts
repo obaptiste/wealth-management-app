@@ -10,7 +10,7 @@ import {
   fetchStockHistoricalPrices,
   fetchStockRecommendations,
   login,
-} from "@/app/services/api";
+} from "../../app/services/api";
 
 // Mock global fetch
 global.fetch = jest.fn() as jest.Mock;
