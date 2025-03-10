@@ -15,7 +15,7 @@ from sqlalchemy.future import select
 from passlib.context import CryptContext
 import models, schemas, database
 import datetime
-from transformers import pipeline
+from transformers import pipeline  # type: ignore
 import yfinance as yf
 from .auth import authenticate_user, create_access_token, get_current_user, get_password_hash
 from schemas import TextInput, UserOut

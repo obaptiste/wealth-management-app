@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from logging.config import fileConfig
 from sqlalchemy import create_engine
 
-from alembic import context
+from alembic import context  # type: ignore
 from models import Base
 
 #load environment variables
@@ -13,13 +13,13 @@ load_dotenv()
 
 config = context.config
 
-fileConfig(config.config_file_name)
+if config.config_file_name is not None:
+    fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
 
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-
+DATABASE_URL = os.getenv("DATABASE_URL_LOCAL", os.getenv("DATABASE_URL"))
 
 
 # this is the Alembic Config object, which provides
@@ -73,6 +73,9 @@ def run_migrations_online():
     and associate a connection with the context.
 
     """
+    if DATABASE_URL is None:
+        raise ValueError("DATABASE_URL must be set")
+
     engine = create_engine(DATABASE_URL)
 
 
