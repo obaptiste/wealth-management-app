@@ -1,7 +1,9 @@
 import pytest
 import httpx
 import respx
+import pandas as pd
 from backend.main import get_stock_data  # Replace `main` with the actual module name where the function is defined
+import unittest.mock as mock
 
 @pytest.mark.asyncio
 @respx.mock
@@ -45,22 +47,19 @@ async def test_get_stock_data_404():
         await get_stock_data(stock_symbol)
 
 
-async def test_get_stock_data():
-    stock_symbol = "AAPL"
-    mock_url = f"https://api.example.com/stock-data/{stock_symbol}"
-    mock_data = {
-        "symbol": "AAPL",
-        "price": 150.0,
-        "change": -1.5,
-    }
-
-    # Mock the endpoint response
-    respx.get(mock_url).mock(return_value=httpx.Response(200, json=mock_data))
-
-    # Call the function
-    response = await get_stock_data(stock_symbol)
-
-    # Assertions
-    assert response["symbol"] == "AAPL"
-    assert response["price"] == 150.0
-    assert response["change"] == -1.5
+@mock.patch('yfinance.Ticker')
+@pytest.mark.asyncio
+async def test_get_stock_data(mock_ticker):
+    mock_instance = mock_ticker.return_value
+    mock_instance.history.return_value = pd.DataFrame({
+        'Open': [145.0],
+        'Close': [150.0],
+        'High': [152.0],
+        'Low': [144.0]
+        }, 
+        index=[pd.Timestamp('2023-01-01')])
+        
+    # Call function and test
+    data = await get_stock_data("AAPL")
+    assert data["symbol"] == "AAPL"
+    assert data["price"] == 150.0

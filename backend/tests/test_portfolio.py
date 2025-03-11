@@ -11,7 +11,7 @@ from sqlalchemy.future import select
 async def test_update_portfolio():
     # Ensure portfolio exists
     async with get_db() as db:
-        portfolio = models.Portfolio(id=1, name="Initial Portfolio", user_id=1)  # Adjust user_id
+        portfolio = models.Portfolio(id=1, name="Initial Portfolio", owner_id=1)  # Adjust user_id
         db.add(portfolio)
         await db.commit()
 
