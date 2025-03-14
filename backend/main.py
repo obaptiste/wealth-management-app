@@ -267,8 +267,8 @@ async def get_portfolio(
                 latest_price = stock.history(period="1d")["Close"].iloc[-1]
                 
                 # Calculate performance - convert to float to avoid type issues
-                asset_quantity = float(asset.quantity)
-                asset_purchase_price = float(asset.purchase_price)
+                asset_quantity = float(getattr(asset, "quantity"))
+                asset_purchase_price = float(getattr(asset, "purchase_price"))
                 asset_cost = asset_quantity * asset_purchase_price
                 asset_value = asset_quantity * float(latest_price)
                 profit_loss = asset_value - asset_cost
@@ -286,13 +286,13 @@ async def get_portfolio(
                     purchase_price=asset_purchase_price,
                     purchase_date=cast(datetime, asset.purchase_date),
                     notes=str(asset.notes) if asset.notes is not None else None,
-                    portfolio_id=int(asset.portfolio_id),
+                    portfolio_id=int(str(asset.portfolio_id)),
                     current_price=float(latest_price),
                     current_value=float(asset_value),
                     profit_loss=float(profit_loss),
                     profit_loss_percent=float(profit_loss_percent),
-                    created_at=asset.created_at,
-                    updated_at=asset.updated_at,
+                    created_at=cast(datetime, asset.created_at),
+                    updated_at=cast(datetime, asset.updated_at),
                     last_updated=datetime.now(timezone.utc)
                 )
                 assets_with_performance.append(asset_data)
@@ -309,14 +309,14 @@ async def get_portfolio(
                     quantity=asset_quantity,
                     purchase_price=asset_purchase_price,
                     purchase_date=cast(datetime, asset.purchase_date),
-                    notes=str(asset.notes) if asset.notes else None,
-                    portfolio_id=int(asset.portfolio_id),
+                    notes=str(asset.notes) if asset.notes is not None else None,
+                    portfolio_id=int(str(asset.portfolio_id)),
                     current_price=asset_purchase_price,
                     current_value=float(asset_value),
                     profit_loss=0.0,
                     profit_loss_percent=0.0,
-                    created_at=asset.created_at,
-                    updated_at=asset.updated_at,
+                    created_at=cast(datetime, asset.created_at),
+                    updated_at=cast(datetime, asset.updated_at),
                     last_updated=datetime.now(timezone.utc)
                 )
                 assets_with_performance.append(asset_data)
@@ -339,8 +339,8 @@ async def get_portfolio(
             name=str(portfolio.name),
             description=str(portfolio.description) if portfolio.description is not None else None,
             owner_id=int(str(portfolio.owner_id)),
-            created_at=portfolio.created_at,
-            updated_at=portfolio.updated_at,
+            created_at=cast(datetime, portfolio.created_at),
+            updated_at=cast(datetime, portfolio.updated_at),
             assets=assets_with_performance,
             summary=summary
         )
@@ -613,9 +613,9 @@ async def get_asset(
                 symbol=str(asset.symbol),
                 quantity=asset_quantity,
                 purchase_price=asset_purchase_price,
-                purchase_date=asset.purchase_date,
-                notes=str(asset.notes) if asset.notes else None,
-                portfolio_id=int(asset.portfolio_id),
+                purchase_date=cast(datetime, asset.purchase_date),
+                notes=str(asset.notes) if asset.notes is not None else None,
+                portfolio_id=int(str(asset.portfolio_id)),
                 current_price=float(latest_price),
                 current_value=float(asset_value),
                 profit_loss=float(profit_loss),
@@ -639,16 +639,25 @@ async def get_asset(
             logger.warning(f"Could not fetch current price for {asset.symbol}: {str(e)}")
             
             # Return asset without performance data
+            # Return asset with default values for performance metrics
+            asset_quantity = float(asset.quantity)
+            asset_purchase_price = float(asset.purchase_price)
+            
             return AssetWithPerformance(
-                id=int(asset.id),
+                id=int(str(asset.id)),
                 symbol=str(asset.symbol),
-                quantity=float(asset.quantity),
-                purchase_price=float(asset.purchase_price),
-                purchase_date=asset.purchase_date,
+                quantity=asset_quantity,
+                purchase_price=asset_purchase_price,
+                purchase_date=cast(datetime, asset.purchase_date),
                 notes=str(asset.notes) if asset.notes else None,
                 portfolio_id=int(asset.portfolio_id),
+                current_price=asset_purchase_price,
+                current_value=asset_quantity * asset_purchase_price,
+                profit_loss=0.0,
+                profit_loss_percent=0.0,
                 created_at=asset.created_at,
-                updated_at=asset.updated_at
+                updated_at=asset.updated_at,
+                last_updated=datetime.now(timezone.utc)
             )
     except HTTPException:
         # Re-raise HTTP exceptions

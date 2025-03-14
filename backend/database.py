@@ -20,7 +20,6 @@ engine = create_async_engine(
 
 # Session factory for creating database sessions
 async_session_factory = sessionmaker(
-    bind=engine,
     class_=AsyncSession,
     expire_on_commit=False,
     autoflush=False      # Prevent automatic flushing for better control
@@ -49,10 +48,10 @@ async def get_db():
         # No commit here - it should be explicitly called when needed
     except Exception as e:
         logger.error(f"Database session error: {str(e)}")
-        await session.rollback()
+        session.rollback()
         raise
     finally:
-        await session.close()
+        session.close()
 
 # For FastAPI dependency injection
 async def get_db_dependency():

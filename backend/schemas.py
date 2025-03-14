@@ -8,7 +8,7 @@ import re
 class UserBase(BaseModel):
     """Base schema for user data."""
     username: str = Field(..., min_length=3, max_length=100)
-    email: EmailStr
+    email: str
 
 class UserCreate(UserBase):
     """Schema for creating a new user."""
