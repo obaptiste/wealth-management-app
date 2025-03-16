@@ -28,7 +28,7 @@ from .auth import (
 
 from contextlib import asynccontextmanager
 from .config import settings
-import globalSetting
+from . import globalSetting
 from .twitter_fetcher import get_tweets_about_stock
 
 # Configure logging
@@ -108,7 +108,7 @@ async def login_for_access_token(
         )
     
     # Get the user data from database
-    result = await db.execute(select(User).where(User.username == form_data.username))
+    result = await db.execute(select(User).where(User.email == form_data.username))
     user = result.scalars().first()
     
     if not user:
@@ -620,8 +620,8 @@ async def get_asset(
                 current_value=float(asset_value),
                 profit_loss=float(profit_loss),
                 profit_loss_percent=float(profit_loss_percent),
-                created_at=asset.created_at,
-                updated_at=asset.updated_at,
+                created_at=cast(datetime, asset.created_at),
+                updated_at=cast(datetime, asset.updated_at),
                 last_updated=datetime.now(timezone.utc)
             )
             
@@ -640,8 +640,8 @@ async def get_asset(
             
             # Return asset without performance data
             # Return asset with default values for performance metrics
-            asset_quantity = float(asset.quantity)
-            asset_purchase_price = float(asset.purchase_price)
+            asset_quantity = float(str(asset.quantity))
+            asset_purchase_price = float(str(asset.purchase_price))
             
             return AssetWithPerformance(
                 id=int(str(asset.id)),
@@ -649,14 +649,14 @@ async def get_asset(
                 quantity=asset_quantity,
                 purchase_price=asset_purchase_price,
                 purchase_date=cast(datetime, asset.purchase_date),
-                notes=str(asset.notes) if asset.notes else None,
-                portfolio_id=int(asset.portfolio_id),
+                notes=str(asset.notes) if str(asset.notes) else None,
+                portfolio_id=int(str(asset.portfolio_id)),
                 current_price=asset_purchase_price,
                 current_value=asset_quantity * asset_purchase_price,
                 profit_loss=0.0,
                 profit_loss_percent=0.0,
-                created_at=asset.created_at,
-                updated_at=asset.updated_at,
+                created_at=cast(datetime, asset.created_at),
+                updated_at=cast(datetime, asset.updated_at),
                 last_updated=datetime.now(timezone.utc)
             )
     except HTTPException:
@@ -824,7 +824,7 @@ async def get_stock_data(symbol: str):
             "volume": latest["Volume"],
             "high": latest["High"],
             "low": latest["Low"],
-            "date": latest.name.isoformat()
+            "date": str(latest.name) if latest.name is not None else datetime.now(timezone.utc).isoformat()
         }
     except Exception as e:
         logger.error(f"Error fetching stock data for {symbol}: {str(e)}")
@@ -858,7 +858,7 @@ async def get_stock_history(
         history_data = []
         for date, row in history.iterrows():
             history_data.append({
-                "date": date.isoformat(),
+                "date": str(date) if date is not None else None,
                 "open": row["Open"],
                 "high": row["High"],
                 "low": row["Low"],

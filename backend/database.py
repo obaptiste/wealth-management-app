@@ -25,6 +25,9 @@ async_session_factory = sessionmaker(
     autoflush=False      # Prevent automatic flushing for better control
 )
 
+# Export the async_session name that's being imported in __init__.py
+async_session = async_session_factory
+
 # Base class for SQLAlchemy models
 Base = declarative_base()
 

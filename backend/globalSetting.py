@@ -1,8 +1,13 @@
-#global setting contains the global variables and functions that are used across the application
-from models import SentimentResult as SentimentResultModel
-from pydantic import BaseModel
-from datetime import datetime
+# globalSetting.py
+"""
+Global settings and functions that are used across the application.
+"""
 from typing import Optional
+from datetime import datetime
+
+# Import models with proper relative import to avoid circular imports
+from .models import SentimentResult as SentimentResultModel
+from pydantic import BaseModel
 
 class PortfolioSummary(BaseModel):
     total_value: float
@@ -37,6 +42,7 @@ class SentimentAnalyser:
             results.append({"label": sentiment, "score": 0.95})
         return results
 
+# Initialize the sentiment model
 sentiment_model = SentimentAnalyser()
 
 def get_sentiment_model():

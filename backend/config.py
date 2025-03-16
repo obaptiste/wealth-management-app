@@ -2,7 +2,8 @@
 # config.py
 import os
 import secrets
-from pydantic_settings import BaseSettings
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
 from functools import lru_cache
 
@@ -30,21 +31,51 @@ class Settings(BaseSettings):
     env_name: str = os.getenv("ENV_NAME", "development")
     debug: bool = os.getenv("DEBUG", "True").lower() in ("true", "1", "t")
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
-
-    @property
-    def database_url(self) -> str:
-        """Standard database URL for SQLAlchemy"""
-        return f"postgresql://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}/{self.postgres_db}"
-        
-    @property
-    def database_url_async(self) -> str:
-        """Async database URL for SQLAlchemy with asyncpg driver"""
-        return f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}/{self.postgres_db}"
+    # Database URLs as computed fields
+    database_url: str = ""
+    database_url_async: str = ""
+    database_url_local: str = ""  # Add this field to match the error message
     
-    @property
+    # Update to Pydantic v2 configuration style
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=False,
+        extra="ignore"  # Important: allow extra fields
+    )
+
+    @field_validator("database_url", mode="before")
+    def set_database_url(cls, v, values):
+        """Set the standard database URL for SQLAlchemy"""
+        if v:  # If already set (e.g., from environment), use that value
+            return v
+        user = values.data.get("postgres_user", "postgres")
+        password = values.data.get("postgres_password", "postgres")
+        host = values.data.get("postgres_host", "localhost")
+        db = values.data.get("postgres_db", "wealth_management")
+        return f"postgresql://{user}:{password}@{host}/{db}"
+        
+    @field_validator("database_url_async", mode="before")
+    def set_database_url_async(cls, v, values):
+        """Set the async database URL for SQLAlchemy with asyncpg driver"""
+        if v:  # If already set, use that value
+            return v
+        user = values.data.get("postgres_user", "postgres")
+        password = values.data.get("postgres_password", "postgres")
+        host = values.data.get("postgres_host", "localhost")
+        db = values.data.get("postgres_db", "wealth_management")
+        return f"postgresql+asyncpg://{user}:{password}@{host}/{db}"
+    
+    @field_validator("database_url_local", mode="before")
+    def set_database_url_local(cls, v, values):
+        """Set the local database URL (same as standard but explicitly for local development)"""
+        if v:  # If already set, use that value
+            return v
+        user = values.data.get("postgres_user", "postgres")
+        password = values.data.get("postgres_password", "postgres")
+        host = values.data.get("postgres_host", "localhost")
+        db = values.data.get("postgres_db", "wealth_management")
+        return f"postgresql://{user}:{password}@{host}/{db}"
+    
     def is_production(self) -> bool:
         """Check if the application is running in production mode"""
         return self.env_name.lower() == "production"
