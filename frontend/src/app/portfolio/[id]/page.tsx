@@ -2,8 +2,30 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { getPortfolio } from '@/lib/api';
-import { PortfolioWithSummary } from '@/lib/api/portfolios';
+import api from '@/lib/api';
+import { AssetWithPerformance } from '@/types/assets';
+
+// Define the PortfolioWithSummary interface since it's used but not imported
+interface PortfolioSummary {
+  total_value: number;
+  total_cost: number;
+  total_profit_loss: number;
+  total_profit_loss_percent: number;
+}
+
+interface PortfolioWithSummary {
+  id: number;
+  name: string;
+  description: string;
+  summary: PortfolioSummary;
+  assets: AssetWithPerformance[];
+}
+
+// Helper function to get portfolio data
+const getPortfolio = async (id: number): Promise<PortfolioWithSummary> => {
+  const { data } = await api.get(`/portfolios/${id}`);
+  return data;
+};
 
 export default function PortfolioDetailPage() {
   const params = useParams();
