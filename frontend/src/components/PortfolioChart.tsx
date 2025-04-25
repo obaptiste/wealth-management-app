@@ -1,19 +1,9 @@
 // components/PortfolioChart.tsx
+import React from 'react';
 import { Box } from '@chakra-ui/react';
 import { useColorModeValue } from '@chakra-ui/color-mode';
-import { 
-  ResponsiveContainer, 
-  PieChart, 
-  Pie, 
-  Cell, 
-  Tooltip, 
-  Legend 
-} from 'recharts';
-import { AssetWithPerformance } from '../types/assets';
-
-interface PortfolioChartProps {
-  assets: AssetWithPerformance[];
-}
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PortfolioChartProps } from '@/types/chart';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 

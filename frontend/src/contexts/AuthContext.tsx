@@ -1,28 +1,32 @@
 // contexts/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useRouter } from 'next/router';
-import api from '../lib/api';
-import { User } from '../types/api';
-
-interface AuthContextType {
-  user: User | null;
-  loading: boolean;
-  error: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  register: (username: string, email: string, password: string) => Promise<void>;
-}
-
-export interface ApiError {
-    response: {
-      data: {
-        detail: string;
-      };
-    };
-  }
-  
+import { useRouter } from 'next/navigation';
+import apiClient from '@/lib/api';
+import { User } from '@/types/api';
+import { AuthContextType } from '@/types/auth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Create API functions instead of calling methods directly on axios
+const getCurrentUser = async () => {
+  const response = await apiClient.get('/api/auth/current-user');
+  return response.data;
+};
+
+const loginApi = async (credentials: { username: string; password: string }) => {
+  const response = await apiClient.post('/api/auth/login', credentials);
+  return response.data;
+};
+
+const logoutApi = async () => {
+  const response = await apiClient.post('/api/auth/logout');
+  return response.data;
+};
+
+const registerApi = async (userData: { username: string; email: string; password: string }) => {
+  const response = await apiClient.post('/api/auth/register', userData);
+  return response.data;
+};
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -34,8 +38,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const checkAuth = async () => {
       try {
         if (typeof window !== 'undefined' && localStorage.getItem('token')) {
-          const { data } = await api.get<User>('/auth/me');
-          setUser(data);
+          const userData = await getCurrentUser();
+          setUser(userData);
         }
       } catch (err) {
         console.error('Error checking auth:', err);
@@ -51,29 +55,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     try {
       setError(null);
-      const formData = new FormData();
-      formData.append('username', email);
-      formData.append('password', password);
-      
-      const { data } = await api.post('/auth/token', formData, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      });
-      
-      localStorage.setItem('token', data.access_token);
-      
-      const userResponse = await api.get<User>('/auth/me');
-      setUser(userResponse.data);
+      setLoading(true);
+
+      const response = await loginApi({ username: email, password });
+
+      const userData = await getCurrentUser();
+      setUser(userData);
+
       router.push('/dashboard');
+      return response;
     } catch (err: unknown) {
-      setError((err as ApiError).response?.data?.detail || 'Login failed');
+      if (err instanceof Error) {
+        if (err.message.includes('credentials')) {
+          setError('Invalid email or password');
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError('Login failed. Please try again.');
+      }
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
+  const logout = async () => {
+    await logoutApi();
     setUser(null);
     router.push('/login');
   };
@@ -81,10 +89,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (username: string, email: string, password: string) => {
     try {
       setError(null);
-      await api.post('/auth/register', { username, email, password });
+
+      const registerResponse = await registerApi({ username, email, password });
+
       await login(email, password);
+
+      return registerResponse;
     } catch (err: unknown) {
-      setError((err as ApiError).response?.data?.detail || 'Registration failed');
+      const errorMessage = err instanceof Error ? err.message : 'Registration failed';
+      setError(errorMessage);
       throw err;
     }
   };

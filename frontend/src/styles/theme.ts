@@ -1,5 +1,12 @@
 // styles/theme.ts
+import { ThemeConfig } from '@chakra-ui/theme';
 import { extendTheme } from '@chakra-ui/theme-utils';
+
+// Color mode config - supports dark mode
+const config: ThemeConfig = {
+  initialColorMode: 'light',
+  useSystemColorMode: false,
+};
 
 const colors = {
   primary: {
@@ -62,23 +69,12 @@ const colors = {
     800: '#5B0C0E',
     900: '#2D0607',
   },
-  gray: {
-    50: '#F7FAFC',
-    100: '#EDF2F7',
-    200: '#E2E8F0',
-    300: '#CBD5E0',
-    400: '#A0AEC0',
-    500: '#718096',
-    600: '#4A5568',
-    700: '#2D3748',
-    800: '#1A202C',
-    900: '#0D1117',
-  },
 };
 
 const fonts = {
-  heading: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-  body: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+  heading: '"Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+  body: '"Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+  mono: '"Geist Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace',
 };
 
 const components = {
@@ -106,12 +102,12 @@ const components = {
     },
   },
   Card: {
-    baseStyle: {
+    baseStyle: (props: { colorMode: string }) => ({
       p: '6',
-      bg: 'white',
+      bg: props.colorMode === 'dark' ? 'gray.800' : 'white',
       borderRadius: 'xl',
       boxShadow: 'md',
-    },
+    }),
   },
   Input: {
     baseStyle: {
@@ -120,10 +116,10 @@ const components = {
       },
     },
     variants: {
-      outline: {
+      outline: (props: { colorMode: string }) => ({
         field: {
           border: '1px solid',
-          borderColor: 'gray.300',
+          borderColor: props.colorMode === 'dark' ? 'gray.600' : 'gray.300',
           _hover: {
             borderColor: 'primary.400',
           },
@@ -132,17 +128,17 @@ const components = {
             boxShadow: '0 0 0 1px var(--chakra-colors-primary-500)',
           },
         },
-      },
+      }),
     },
     defaultProps: {
       variant: 'outline',
     },
   },
   Heading: {
-    baseStyle: {
+    baseStyle: (props: { colorMode: string }) => ({
       fontWeight: '600',
-      color: 'gray.800',
-    },
+      color: props.colorMode === 'dark' ? 'gray.100' : 'gray.800',
+    }),
   },
 };
 
@@ -156,12 +152,12 @@ const breakpoints = {
 };
 
 const styles = {
-  global: {
+  global: (props: { colorMode: string }) => ({
     body: {
-      bg: 'gray.50',
-      color: 'gray.800',
+      bg: props.colorMode === 'dark' ? 'gray.900' : 'gray.50',
+      color: props.colorMode === 'dark' ? 'gray.100' : 'gray.800',
     },
-  },
+  }),
 };
 
 export const theme = extendTheme({
@@ -170,8 +166,5 @@ export const theme = extendTheme({
   components,
   breakpoints,
   styles,
-  config: {
-    initialColorMode: 'light',
-    useSystemColorMode: false,
-  },
+  config,
 });

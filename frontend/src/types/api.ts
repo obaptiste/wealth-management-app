@@ -4,47 +4,69 @@ export interface User {
     username: string;
     email: string;
     is_active: boolean;
-    created_at: string;
-  }
-  
-  export interface Portfolio {
-    id: number;
-    name: string;
-    description: string | null;
-    owner_id: number;
+    is_superuser: boolean;
     created_at: string;
     updated_at: string;
-  }
-  
-  export interface PortfolioWithSummary extends Portfolio {
-    assets: AssetWithPerformance[];
-    summary: PortfolioSummary;
-  }
-  
-  export interface PortfolioSummary {
-    total_value: number;
-    total_cost: number;
-    total_profit_loss: number;
-    total_profit_loss_percent: number;
-    last_updated: string;
-  }
-  
-  export interface Asset {
-    id: number;
-    symbol: string;
-    quantity: number;
-    purchase_price: number;
-    purchase_date: string;
-    notes: string | null;
-    portfolio_id: number;
-    created_at: string;
-    updated_at: string;
-  }
-  
-  export interface AssetWithPerformance extends Asset {
-    current_price: number;
-    current_value: number;
-    profit_loss: number;
-    profit_loss_percent: number;
-    last_updated: string;
-  }
+}
+
+export interface ApiResponse<T> {
+  data: T;
+  status: number;
+  message: string;
+  error?: string;
+}
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  size: number;
+  pages: number;
+}
+
+// API client types
+
+/**
+ * ApiClientResponse<T> is used in the following scenarios:
+ * 
+ * 1. When defining API client function return types:
+ *    - API functions should return Promise<ApiClientResponse<T>>
+ * 
+ * 2. When consuming API responses:
+ *    - Helps with type safety when destructuring the data property
+ *    - Example: const { data } = await apiClient.get<User>('/auth/me');
+ * 
+ * 3. When implementing mock API responses for testing:
+ *    - Ensures test data matches the expected API response format
+ */
+export interface ApiClientResponse<T> {
+  data: T;
+  // Add other common response properties if needed
+  // status?: number;
+  // message?: string;
+}
+
+export interface ApiClientOptions {
+  headers?: Record<string, string>;
+  [key: string]: unknown;
+}
+
+export interface ApiClient {
+  get<T>(url: string, options?: ApiClientOptions): Promise<ApiClientResponse<T>>;
+  post<T, D = unknown>(url: string, data: D, options?: ApiClientOptions): Promise<ApiClientResponse<T>>;
+}
+
+/**
+ * Authentication response from login endpoint
+ */
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+}
+
+/**
+ * User response containing user data
+ */
+export interface UserResponse {
+  user: User;
+}
+

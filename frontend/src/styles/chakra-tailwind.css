@@ -1,0 +1,46 @@
+/* src/styles/chakra-tailwind.css */
+
+/* This file contains overrides to ensure Chakra UI and Tailwind work well together */
+
+/* Make sure dark mode classes work with both Chakra and Tailwind */
+:root {
+  --font-geist-sans: var(--font-geist-sans);
+  --font-geist-mono: var(--font-geist-mono);
+}
+
+/* Dark mode styles that apply to both systems */
+.dark {
+  --chakra-colors-gray-50: #0D1117;
+  --chakra-colors-gray-100: #1A202C;
+  --chakra-colors-gray-200: #2D3748;
+  --chakra-colors-gray-700: #CBD5E0;
+  --chakra-colors-gray-800: #E2E8F0;
+  --chakra-colors-gray-900: #F7FAFC;
+
+  color-scheme: dark;
+}
+
+/* Ensure Chakra UI's reset doesn't interfere with Tailwind utilities */
+.chakra-ui-dark[data-theme="dark"] .dark\:text-white {
+  color: white;
+}
+
+.chakra-ui-light[data-theme="light"] .text-black {
+  color: black;
+}
+
+/* Remove Chakra UI focus outline when using Tailwind's focus utilities */
+.focus\:outline-none:focus {
+  box-shadow: none !important;
+}
+
+/* Ensure fonts work in both systems */
+.chakra-text, .chakra-heading {
+  font-family: var(--font-geist-sans);
+}
+
+.chakra-code {
+  font-family: var(--font-geist-mono);
+}
+
+/* The extra closing brace at the end has been removed. */

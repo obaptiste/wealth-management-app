@@ -19,6 +19,9 @@ poetry.lock
 .python-version
 
 # Distribution / packaging
+.next/
+node_modules/
+package-lock.json
 .Python
 build/
 develop-eggs/

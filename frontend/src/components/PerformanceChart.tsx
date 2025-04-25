@@ -1,24 +1,14 @@
 // components/PerformanceChart.tsx
-import React, { useEffect, useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
+import * as d3 from 'd3';
 import { Box } from '@chakra-ui/react';
 import { useColorModeValue } from '@chakra-ui/color-mode';
-import * as d3 from 'd3';
-
-interface DataPoint {
-  date: string;
-  value: number;
-}
-
-interface PerformanceChartProps {
-  data: DataPoint[];
-  width?: number;
-  height?: number;
-}
+import { DataPoint, PerformanceChartProps } from '@/types/chart';
 
 const PerformanceChart: React.FC<PerformanceChartProps> = ({ 
-  data,
-  width = 600,
-  height = 300
+  data, 
+  width = 600, 
+  height = 300 
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const chartColor = useColorModeValue('#3182CE', '#63B3ED');

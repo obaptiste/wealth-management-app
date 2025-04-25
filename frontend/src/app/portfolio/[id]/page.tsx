@@ -1,25 +1,10 @@
 'use client';
-
+// Add CSS module imports
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import api from '@/lib/api';
-import { AssetWithPerformance } from '@/types/assets';
-
-// Define the PortfolioWithSummary interface since it's used but not imported
-interface PortfolioSummary {
-  total_value: number;
-  total_cost: number;
-  total_profit_loss: number;
-  total_profit_loss_percent: number;
-}
-
-interface PortfolioWithSummary {
-  id: number;
-  name: string;
-  description: string;
-  summary: PortfolioSummary;
-  assets: AssetWithPerformance[];
-}
+import * as api from '@/lib/api';
+import { PortfolioWithSummary } from '@/types/api';
+// Removing unused imports
 
 // Helper function to get portfolio data
 const getPortfolio = async (id: number): Promise<PortfolioWithSummary> => {
