@@ -3,13 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import * as api from '@/lib/api';
-import { PortfolioWithSummary } from '@/types/api';
+import { PortfolioWithSummary } from '@/types/';
 // Removing unused imports
 
 // Helper function to get portfolio data
 const getPortfolio = async (id: number): Promise<PortfolioWithSummary> => {
   const { data } = await api.get(`/portfolios/${id}`);
-  return data;
+  return data as PortfolioWithSummary;
 };
 
 export default function PortfolioDetailPage() {

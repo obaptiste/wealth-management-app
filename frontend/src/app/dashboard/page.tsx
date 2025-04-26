@@ -2,7 +2,7 @@
 
 import React from 'react';
 import {
-  Card,
+  Card as ChakraCard,
   Box,
   Container,
   Flex,
@@ -16,22 +16,22 @@ import {
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 
-// const Card: React.FC<{
-//   children: React.ReactNode;
-// }> = ({ children }) => {
-//   return (
-//     <Box
-//       borderWidth="1px"
-//       borderRadius="lg"
-//       overflow="hidden"
-//       boxShadow="md"
-//       bg="white"
-//       _dark={{ bg: 'gray.800' }}
-//     >
-//       {children}
-//     </Box>
-//   );
-// }
+const Card: React.FC<{
+  children: React.ReactNode;
+}> = ({ children }) => {
+  return (
+    <Box
+      borderWidth="1px"
+      borderRadius="lg"
+      overflow="hidden"
+      boxShadow="md"
+      bg="white"
+      _dark={{ bg: 'gray.800' }}
+    >
+      {children}
+    </Box>
+  );
+}
  const CardHeader: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
@@ -50,18 +50,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function Dashboard() {
   return (
-    <Card
-      borderWidth="1px"
-      borderRadius="lg"
-      overflow="hidden"
-      boxShadow="md"
-      bg="white"
-      _dark={{ bg: 'gray.800' }}
-      minH="100vh"
-      display="flex"
-      flexDirection="column"
-      justifyContent="space-between"
-    >
+    <Card>
     <Box minH="100vh" w="full">
       <Box as="header" py={4} px={6} borderBottomWidth="1px">
         <Flex justify="space-between" align="center" maxW="container.xl" mx="auto">
@@ -74,7 +63,7 @@ export default function Dashboard() {
         <Heading mb={6}>Dashboard</Heading>
         
         <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6} mb={8}>
-          <Card bg="white" _dark={{ bg: 'gray.800' }}>
+          <ChakraCard>
             <CardHeader>
               <Heading size="md">Portfolio Value</Heading>
             </CardHeader>
@@ -82,9 +71,9 @@ export default function Dashboard() {
               <Heading size="xl">$234,500</Heading>
               <Text color="green.500">+5.2% today</Text>
             </CardBody>
-          </Card>
+          </ChakraCard>
           
-          <Card>
+          <ChakraCard>
             <CardHeader>
               <Heading size="md">Assets</Heading>
             </CardHeader>
@@ -92,9 +81,9 @@ export default function Dashboard() {
               <Heading size="xl">12</Heading>
               <Text>Across 4 categories</Text>
             </CardBody>
-          </Card>
+          </ChakraCard>
           
-          <Card>
+          <ChakraCard>
             <CardHeader>
               <Heading size="md">Performance</Heading>
             </CardHeader>
@@ -102,7 +91,7 @@ export default function Dashboard() {
               <Heading size="xl">+12.4%</Heading>
               <Text>Year to date</Text>
             </CardBody>
-          </Card>
+          </ChakraCard>
         </SimpleGrid>
         
         <Flex gap={6} flexDirection={{ base: 'column', md: 'row' }}>
