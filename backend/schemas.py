@@ -155,3 +155,125 @@ class SentimentBatchResult(BaseModel):
     sentiment_summary: Dict[str, float]
     total_tweets: int
     detailed_sentiments: Optional[List[Dict[str, Any]]] = None
+
+# Currency conversion schemas
+class CurrencyConversionRequest(BaseModel):
+    """Schema for currency conversion request."""
+    from_currency: str = Field(..., alias="from", min_length=3, max_length=3)
+    to_currency: str = Field(..., alias="to", min_length=3, max_length=3)
+    amount: float = Field(..., gt=0)
+
+    model_config = ConfigDict(populate_by_name=True)
+
+class CurrencyConversionResponse(BaseModel):
+    """Schema for currency conversion response."""
+    from_currency: str
+    to_currency: str
+    amount: float
+    converted_amount: float
+    exchange_rate: float
+    last_updated: datetime
+
+class ExchangeRatesResponse(BaseModel):
+    """Schema for exchange rates response."""
+    base: str
+    rates: Dict[str, float]
+    last_updated: datetime
+
+# Insurance schemas
+class InsuranceProductBase(BaseModel):
+    """Base schema for insurance product data."""
+    name: str = Field(..., min_length=1, max_length=100)
+    type: str = Field(..., min_length=1, max_length=50)
+    description: Optional[str] = None
+    coverage_amount: float = Field(..., gt=0)
+    monthly_premium: float = Field(..., gt=0)
+    min_age: int = Field(..., ge=0, le=120)
+    max_age: int = Field(..., ge=0, le=120)
+    min_income: Optional[float] = Field(None, ge=0)
+
+class InsuranceProductOut(InsuranceProductBase):
+    """Schema for insurance product data returned to clients."""
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class InsuranceRecommendationRequest(BaseModel):
+    """Schema for insurance recommendation request."""
+    age: int = Field(..., ge=18, le=120)
+    income: float = Field(..., gt=0)
+    dependents: int = Field(..., ge=0)
+    has_health_insurance: bool = False
+    has_life_insurance: bool = False
+    risk_tolerance: str = Field(..., pattern=r'^(low|medium|high)$')
+
+class InsuranceRecommendation(BaseModel):
+    """Schema for insurance recommendation."""
+    product: InsuranceProductOut
+    score: float = Field(..., ge=0, le=100)
+    reason: str
+
+class InsuranceRecommendationsResponse(BaseModel):
+    """Schema for insurance recommendations response."""
+    recommendations: List[InsuranceRecommendation]
+    total_recommended_coverage: float
+    total_monthly_premium: float
+
+# Pension planning schemas
+class PensionPlanBase(BaseModel):
+    """Base schema for pension plan data."""
+    name: str = Field(..., min_length=1, max_length=100)
+    current_age: int = Field(..., ge=18, le=120)
+    target_retirement_age: int = Field(..., ge=18, le=120)
+    monthly_contribution: float = Field(..., gt=0)
+    current_savings: float = Field(default=0.0, ge=0)
+    expected_return: float = Field(..., gt=0, le=30)  # Annual return percentage
+
+class PensionPlanCreate(PensionPlanBase):
+    """Schema for creating a new pension plan."""
+    pass
+
+class PensionPlanUpdate(BaseModel):
+    """Schema for updating pension plan data."""
+    name: Optional[str] = Field(None, min_length=1, max_length=100)
+    target_retirement_age: Optional[int] = Field(None, ge=18, le=120)
+    monthly_contribution: Optional[float] = Field(None, gt=0)
+    current_savings: Optional[float] = Field(None, ge=0)
+    expected_return: Optional[float] = Field(None, gt=0, le=30)
+
+class PensionPlanOut(PensionPlanBase):
+    """Schema for pension plan data returned to clients."""
+    id: int
+    user_id: int
+    projected_value: Optional[float] = None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class PensionCalculationRequest(BaseModel):
+    """Schema for pension calculation request."""
+    current_age: int = Field(..., ge=18, le=120)
+    retirement_age: int = Field(..., ge=18, le=120)
+    monthly_contribution: float = Field(..., gt=0)
+    current_savings: float = Field(default=0.0, ge=0)
+    expected_return: float = Field(..., gt=0, le=30)  # Annual return percentage
+
+class PensionProjection(BaseModel):
+    """Schema for pension projection data."""
+    age: int
+    year: int
+    total_contributions: float
+    investment_returns: float
+    total_value: float
+
+class PensionCalculationResponse(BaseModel):
+    """Schema for pension calculation response."""
+    retirement_age: int
+    years_to_retirement: int
+    total_contributions: float
+    projected_value: float
+    monthly_retirement_income: float  # Assuming 4% withdrawal rate
+    projections: List[PensionProjection]

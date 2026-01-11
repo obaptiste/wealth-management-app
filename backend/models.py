@@ -113,14 +113,58 @@ class AssetPriceHistory(Base, TimestampMixin):
 
 class SentimentResult(Base, TimestampMixin):
     """Model for storing sentiment analysis results."""
-    
+
     __tablename__ = "sentiment_results"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     symbol = Column(String(20), index=True, nullable=False)
     sentiment = Column(String(20), nullable=False)  # positive, negative, neutral
     confidence = Column(Float, nullable=False)
     source_text = Column(Text, nullable=True)
-    
+
     def __repr__(self):
         return f"<SentimentResult(id={self.id}, symbol='{self.symbol}', sentiment='{self.sentiment}')>"
+
+class InsuranceProduct(Base, TimestampMixin):
+    """Model for insurance products available in the system."""
+
+    __tablename__ = "insurance_products"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False)
+    type = Column(String(50), nullable=False)  # life, health, disability, property
+    description = Column(Text, nullable=True)
+    coverage_amount = Column(Float, nullable=False)
+    monthly_premium = Column(Float, nullable=False)
+    min_age = Column(Integer, nullable=False)
+    max_age = Column(Integer, nullable=False)
+    min_income = Column(Float, nullable=True)
+
+    def __repr__(self):
+        return f"<InsuranceProduct(id={self.id}, name='{self.name}', type='{self.type}')>"
+
+class PensionPlan(Base, TimestampMixin):
+    """Model for user pension plans."""
+
+    __tablename__ = "pension_plans"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    current_age = Column(Integer, nullable=False)
+    target_retirement_age = Column(Integer, nullable=False)
+    monthly_contribution = Column(Float, nullable=False)
+    current_savings = Column(Float, nullable=False, default=0.0)
+    expected_return = Column(Float, nullable=False)  # Annual return percentage
+    projected_value = Column(Float, nullable=True)
+
+    # Relationships
+    owner = relationship("User", backref="pension_plans")
+
+    # Add index for faster lookups by user
+    __table_args__ = (
+        Index('idx_pension_user', 'user_id'),
+    )
+
+    def __repr__(self):
+        return f"<PensionPlan(id={self.id}, name='{self.name}', user_id={self.user_id})>"
