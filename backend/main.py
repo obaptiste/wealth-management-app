@@ -14,12 +14,16 @@ from typing import List, Optional, Dict, Any, cast
 
 # Import local modules
 from .database import get_db_dependency
-from .models import User, Portfolio, Asset, SentimentResult, AssetPriceHistory
+from .models import User, Portfolio, Asset, SentimentResult, AssetPriceHistory, InsuranceProduct, PensionPlan
 from .schemas import (
     UserCreate, UserOut, Token, PortfolioCreate, PortfolioOut,
     PortfolioUpdate, PortfolioWithSummary, PortfolioSummary, AssetCreate, AssetOut,
     AssetUpdate, AssetWithPerformance, TextInput, SentimentOut,
-    SentimentBatchResult
+    SentimentBatchResult, CurrencyConversionRequest, CurrencyConversionResponse,
+    ExchangeRatesResponse, InsuranceProductOut, InsuranceRecommendationRequest,
+    InsuranceRecommendation, InsuranceRecommendationsResponse, PensionPlanCreate,
+    PensionPlanUpdate, PensionPlanOut, PensionCalculationRequest, PensionCalculationResponse,
+    PensionProjection
 )
 from .auth import (
     authenticate_user, create_access_token, get_current_user,
@@ -1109,6 +1113,621 @@ async def get_sentiment_history(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred while fetching sentiment history: {str(e)}"
+        )
+
+# Currency Conversion Endpoints
+@lru_cache(maxsize=128)
+def get_exchange_rates_from_api(base: str = "USD") -> Dict[str, Any]:
+    """Fetch exchange rates from a free API (cached)."""
+    import requests
+    try:
+        # Using exchangerate-api.com free tier (no API key needed for basic usage)
+        response = requests.get(f"https://api.exchangerate-api.com/v4/latest/{base}")
+        if response.status_code == 200:
+            data = response.json()
+            return {
+                "base": data["base"],
+                "rates": data["rates"],
+                "last_updated": datetime.now(timezone.utc)
+            }
+        else:
+            # Fallback to mock data if API fails
+            logger.warning(f"Exchange rate API returned status {response.status_code}, using mock data")
+            return get_mock_exchange_rates(base)
+    except Exception as e:
+        logger.error(f"Error fetching exchange rates: {str(e)}, using mock data")
+        return get_mock_exchange_rates(base)
+
+def get_mock_exchange_rates(base: str = "USD") -> Dict[str, Any]:
+    """Return mock exchange rates as fallback."""
+    mock_rates = {
+        "USD": {"EUR": 0.92, "GBP": 0.79, "JPY": 149.50, "CHF": 0.88, "CAD": 1.35, "AUD": 1.52, "CNY": 7.24},
+        "EUR": {"USD": 1.09, "GBP": 0.86, "JPY": 162.50, "CHF": 0.96, "CAD": 1.47, "AUD": 1.65, "CNY": 7.88},
+        "GBP": {"USD": 1.27, "EUR": 1.16, "JPY": 189.00, "CHF": 1.12, "CAD": 1.71, "AUD": 1.93, "CNY": 9.19},
+    }
+
+    if base not in mock_rates:
+        base = "USD"
+
+    rates = {"USD": 1.0, "EUR": 0.92, "GBP": 0.79, "JPY": 149.50, "CHF": 0.88, "CAD": 1.35, "AUD": 1.52, "CNY": 7.24}
+    if base != "USD":
+        # Convert all rates relative to the base currency
+        base_to_usd = 1.0 / rates[base]
+        rates = {k: v * base_to_usd for k, v in rates.items()}
+
+    return {
+        "base": base,
+        "rates": rates,
+        "last_updated": datetime.now(timezone.utc)
+    }
+
+@app.post("/currency/convert", response_model=CurrencyConversionResponse, tags=["Currency"])
+async def convert_currency(request: CurrencyConversionRequest):
+    """Convert an amount from one currency to another using real-time exchange rates."""
+    try:
+        from_currency = request.from_currency.upper()
+        to_currency = request.to_currency.upper()
+        amount = request.amount
+
+        # Get exchange rates
+        rates_data = get_exchange_rates_from_api(from_currency)
+        rates = rates_data["rates"]
+
+        if to_currency not in rates:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Currency {to_currency} not supported"
+            )
+
+        # Calculate conversion
+        exchange_rate = rates[to_currency]
+        converted_amount = amount * exchange_rate
+
+        return CurrencyConversionResponse(
+            from_currency=from_currency,
+            to_currency=to_currency,
+            amount=amount,
+            converted_amount=converted_amount,
+            exchange_rate=exchange_rate,
+            last_updated=rates_data["last_updated"]
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error converting currency: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred during currency conversion: {str(e)}"
+        )
+
+@app.get("/currency/rates", response_model=ExchangeRatesResponse, tags=["Currency"])
+async def get_exchange_rates(base: str = Query("USD", min_length=3, max_length=3)):
+    """Get current exchange rates for a base currency."""
+    try:
+        base = base.upper()
+        rates_data = get_exchange_rates_from_api(base)
+
+        return ExchangeRatesResponse(
+            base=rates_data["base"],
+            rates=rates_data["rates"],
+            last_updated=rates_data["last_updated"]
+        )
+    except Exception as e:
+        logger.error(f"Error fetching exchange rates: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while fetching exchange rates: {str(e)}"
+        )
+
+@app.get("/currency/supported", tags=["Currency"])
+async def get_supported_currencies():
+    """Get list of supported currencies."""
+    currencies = {
+        "USD": "United States Dollar",
+        "EUR": "Euro",
+        "GBP": "British Pound Sterling",
+        "JPY": "Japanese Yen",
+        "CHF": "Swiss Franc",
+        "CAD": "Canadian Dollar",
+        "AUD": "Australian Dollar",
+        "CNY": "Chinese Yuan",
+        "INR": "Indian Rupee",
+        "BRL": "Brazilian Real",
+        "ZAR": "South African Rand",
+        "RUB": "Russian Ruble",
+        "KRW": "South Korean Won",
+        "MXN": "Mexican Peso",
+        "SGD": "Singapore Dollar",
+        "HKD": "Hong Kong Dollar",
+        "NOK": "Norwegian Krone",
+        "SEK": "Swedish Krona",
+        "DKK": "Danish Krone",
+        "NZD": "New Zealand Dollar"
+    }
+    return {"currencies": currencies}
+
+# Insurance Recommendation Endpoints
+async def seed_insurance_products(db: AsyncSession):
+    """Seed insurance products if they don't exist."""
+    result = await db.execute(select(func.count(InsuranceProduct.id)))
+    count = result.scalar()
+
+    if count == 0:
+        products = [
+            InsuranceProduct(
+                name="Basic Life Insurance",
+                type="life",
+                description="Affordable life insurance coverage for young professionals",
+                coverage_amount=250000,
+                monthly_premium=25,
+                min_age=18,
+                max_age=65
+            ),
+            InsuranceProduct(
+                name="Premium Life Insurance",
+                type="life",
+                description="Comprehensive life insurance with higher coverage",
+                coverage_amount=1000000,
+                monthly_premium=100,
+                min_age=25,
+                max_age=60,
+                min_income=50000
+            ),
+            InsuranceProduct(
+                name="Health Insurance Plus",
+                type="health",
+                description="Comprehensive health coverage with low deductibles",
+                coverage_amount=500000,
+                monthly_premium=350,
+                min_age=18,
+                max_age=75
+            ),
+            InsuranceProduct(
+                name="Disability Income Protection",
+                type="disability",
+                description="Replace 60% of your income if you become disabled",
+                coverage_amount=100000,
+                monthly_premium=50,
+                min_age=25,
+                max_age=65,
+                min_income=30000
+            ),
+            InsuranceProduct(
+                name="Family Health Plan",
+                type="health",
+                description="Health coverage for families with children",
+                coverage_amount=1000000,
+                monthly_premium=600,
+                min_age=25,
+                max_age=65
+            ),
+        ]
+
+        for product in products:
+            db.add(product)
+
+        await db.commit()
+        logger.info(f"Seeded {len(products)} insurance products")
+
+@app.get("/insurance/products", response_model=List[InsuranceProductOut], tags=["Insurance"])
+async def get_insurance_products(db: AsyncSession = Depends(get_db_dependency)):
+    """Get all available insurance products."""
+    try:
+        # Seed products if needed
+        await seed_insurance_products(db)
+
+        result = await db.execute(select(InsuranceProduct))
+        products = result.scalars().all()
+        return products
+    except Exception as e:
+        logger.error(f"Error fetching insurance products: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while fetching insurance products: {str(e)}"
+        )
+
+@app.post("/insurance/recommendations", response_model=InsuranceRecommendationsResponse, tags=["Insurance"])
+async def get_insurance_recommendations(
+    request: InsuranceRecommendationRequest,
+    db: AsyncSession = Depends(get_db_dependency)
+):
+    """Get personalized insurance product recommendations based on user data."""
+    try:
+        # Seed products if needed
+        await seed_insurance_products(db)
+
+        # Get all products
+        result = await db.execute(select(InsuranceProduct))
+        products = result.scalars().all()
+
+        # Filter and score products
+        recommendations = []
+
+        for product in products:
+            # Check age eligibility
+            if request.age < product.min_age or request.age > product.max_age:
+                continue
+
+            # Check income eligibility
+            if product.min_income and request.income < product.min_income:
+                continue
+
+            # Calculate recommendation score
+            score = 50.0  # Base score
+            reason_parts = []
+
+            # Life insurance scoring
+            if product.type == "life":
+                if not request.has_life_insurance:
+                    score += 20
+                    reason_parts.append("You don't have life insurance yet")
+
+                if request.dependents > 0:
+                    score += request.dependents * 10
+                    reason_parts.append(f"You have {request.dependents} dependent(s)")
+
+                if request.income >= 50000 and product.coverage_amount >= 500000:
+                    score += 15
+                    reason_parts.append("Higher coverage matches your income level")
+
+            # Health insurance scoring
+            elif product.type == "health":
+                if not request.has_health_insurance:
+                    score += 30
+                    reason_parts.append("Health insurance is essential")
+
+                if request.dependents > 0 and "family" in product.name.lower():
+                    score += 20
+                    reason_parts.append("Family plan recommended for dependents")
+
+            # Disability insurance scoring
+            elif product.type == "disability":
+                if request.income >= 30000:
+                    score += 15
+                    reason_parts.append("Protect your income in case of disability")
+
+                if request.dependents > 0:
+                    score += 10
+                    reason_parts.append("Income protection important for dependents")
+
+            # Risk tolerance adjustment
+            if request.risk_tolerance == "low":
+                score += 10
+                reason_parts.append("Recommended for low risk tolerance")
+            elif request.risk_tolerance == "high" and product.monthly_premium < 100:
+                score += 5
+
+            # Affordability check
+            affordability_ratio = product.monthly_premium / (request.income / 12)
+            if affordability_ratio > 0.1:  # More than 10% of monthly income
+                score -= 20
+                reason_parts.append("Premium is relatively high for your income")
+            elif affordability_ratio < 0.05:
+                score += 10
+                reason_parts.append("Affordable premium for your income level")
+
+            # Cap score at 100
+            score = min(score, 100)
+
+            # Only recommend if score is above threshold
+            if score >= 40:
+                recommendations.append(
+                    InsuranceRecommendation(
+                        product=InsuranceProductOut(
+                            id=product.id,
+                            name=product.name,
+                            type=product.type,
+                            description=product.description,
+                            coverage_amount=product.coverage_amount,
+                            monthly_premium=product.monthly_premium,
+                            min_age=product.min_age,
+                            max_age=product.max_age,
+                            min_income=product.min_income,
+                            created_at=product.created_at,
+                            updated_at=product.updated_at
+                        ),
+                        score=round(score, 2),
+                        reason=". ".join(reason_parts) if reason_parts else "Good general coverage option"
+                    )
+                )
+
+        # Sort by score
+        recommendations.sort(key=lambda x: x.score, reverse=True)
+
+        # Calculate totals
+        total_coverage = sum(r.product.coverage_amount for r in recommendations[:3])  # Top 3
+        total_premium = sum(r.product.monthly_premium for r in recommendations[:3])
+
+        return InsuranceRecommendationsResponse(
+            recommendations=recommendations,
+            total_recommended_coverage=total_coverage,
+            total_monthly_premium=total_premium
+        )
+    except Exception as e:
+        logger.error(f"Error generating insurance recommendations: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while generating recommendations: {str(e)}"
+        )
+
+# Pension Planning Endpoints
+@app.get("/pension/plans", response_model=List[PensionPlanOut], tags=["Pension"])
+async def get_pension_plans(
+    db: AsyncSession = Depends(get_db_dependency),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Get all pension plans for the current user."""
+    try:
+        result = await db.execute(
+            select(PensionPlan)
+            .where(PensionPlan.user_id == current_user.id)
+        )
+        plans = result.scalars().all()
+        return plans
+    except Exception as e:
+        logger.error(f"Error fetching pension plans: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while fetching pension plans: {str(e)}"
+        )
+
+@app.get("/pension/plans/{plan_id}", response_model=PensionPlanOut, tags=["Pension"])
+async def get_pension_plan(
+    plan_id: int = Path(..., ge=1),
+    db: AsyncSession = Depends(get_db_dependency),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Get a specific pension plan by ID."""
+    try:
+        result = await db.execute(
+            select(PensionPlan)
+            .where(PensionPlan.id == plan_id)
+            .where(PensionPlan.user_id == current_user.id)
+        )
+        plan = result.scalars().first()
+
+        if not plan:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Pension plan not found"
+            )
+
+        return plan
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching pension plan: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while fetching the pension plan: {str(e)}"
+        )
+
+def calculate_pension_value(
+    current_age: int,
+    retirement_age: int,
+    monthly_contribution: float,
+    current_savings: float,
+    expected_return: float
+) -> float:
+    """Calculate future pension value using compound interest formula."""
+    years = retirement_age - current_age
+    monthly_rate = (expected_return / 100) / 12
+    months = years * 12
+
+    # Future value of current savings
+    fv_current = current_savings * ((1 + monthly_rate) ** months)
+
+    # Future value of monthly contributions (annuity)
+    if monthly_rate > 0:
+        fv_contributions = monthly_contribution * (((1 + monthly_rate) ** months - 1) / monthly_rate)
+    else:
+        fv_contributions = monthly_contribution * months
+
+    return fv_current + fv_contributions
+
+@app.post("/pension/plans", response_model=PensionPlanOut, tags=["Pension"])
+async def create_pension_plan(
+    plan_data: PensionPlanCreate,
+    db: AsyncSession = Depends(get_db_dependency),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Create a new pension plan for the current user."""
+    try:
+        # Validate retirement age
+        if plan_data.target_retirement_age <= plan_data.current_age:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Target retirement age must be greater than current age"
+            )
+
+        # Calculate projected value
+        projected_value = calculate_pension_value(
+            plan_data.current_age,
+            plan_data.target_retirement_age,
+            plan_data.monthly_contribution,
+            plan_data.current_savings,
+            plan_data.expected_return
+        )
+
+        # Create pension plan
+        new_plan = PensionPlan(
+            name=plan_data.name,
+            user_id=current_user.id,
+            current_age=plan_data.current_age,
+            target_retirement_age=plan_data.target_retirement_age,
+            monthly_contribution=plan_data.monthly_contribution,
+            current_savings=plan_data.current_savings,
+            expected_return=plan_data.expected_return,
+            projected_value=projected_value
+        )
+
+        db.add(new_plan)
+        await db.commit()
+        await db.refresh(new_plan)
+        logger.info(f"Pension plan created: {new_plan.name}")
+
+        return new_plan
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error creating pension plan: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while creating the pension plan: {str(e)}"
+        )
+
+@app.put("/pension/plans/{plan_id}", response_model=PensionPlanOut, tags=["Pension"])
+async def update_pension_plan(
+    plan_data: PensionPlanUpdate,
+    plan_id: int = Path(..., ge=1),
+    db: AsyncSession = Depends(get_db_dependency),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Update an existing pension plan."""
+    try:
+        result = await db.execute(
+            select(PensionPlan)
+            .where(PensionPlan.id == plan_id)
+            .where(PensionPlan.user_id == current_user.id)
+        )
+        plan = result.scalars().first()
+
+        if not plan:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Pension plan not found"
+            )
+
+        # Update fields
+        if plan_data.name is not None:
+            plan.name = plan_data.name
+
+        if plan_data.target_retirement_age is not None:
+            plan.target_retirement_age = plan_data.target_retirement_age
+
+        if plan_data.monthly_contribution is not None:
+            plan.monthly_contribution = plan_data.monthly_contribution
+
+        if plan_data.current_savings is not None:
+            plan.current_savings = plan_data.current_savings
+
+        if plan_data.expected_return is not None:
+            plan.expected_return = plan_data.expected_return
+
+        # Recalculate projected value
+        plan.projected_value = calculate_pension_value(
+            plan.current_age,
+            plan.target_retirement_age,
+            plan.monthly_contribution,
+            plan.current_savings,
+            plan.expected_return
+        )
+
+        await db.commit()
+        await db.refresh(plan)
+        logger.info(f"Pension plan updated: {plan.name}")
+
+        return plan
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error updating pension plan: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while updating the pension plan: {str(e)}"
+        )
+
+@app.delete("/pension/plans/{plan_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Pension"])
+async def delete_pension_plan(
+    plan_id: int = Path(..., ge=1),
+    db: AsyncSession = Depends(get_db_dependency),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Delete a pension plan."""
+    try:
+        result = await db.execute(
+            select(PensionPlan)
+            .where(PensionPlan.id == plan_id)
+            .where(PensionPlan.user_id == current_user.id)
+        )
+        plan = result.scalars().first()
+
+        if not plan:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Pension plan not found"
+            )
+
+        await db.delete(plan)
+        await db.commit()
+        logger.info(f"Pension plan deleted: {plan.name}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error deleting pension plan: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while deleting the pension plan: {str(e)}"
+        )
+
+@app.post("/pension/calculate", response_model=PensionCalculationResponse, tags=["Pension"])
+async def calculate_pension_projection(request: PensionCalculationRequest):
+    """Calculate pension projections without saving to database."""
+    try:
+        # Validate retirement age
+        if request.retirement_age <= request.current_age:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Retirement age must be greater than current age"
+            )
+
+        years_to_retirement = request.retirement_age - request.current_age
+        monthly_rate = (request.expected_return / 100) / 12
+
+        # Calculate year-by-year projections
+        projections = []
+        total_contributions = request.current_savings
+        total_value = request.current_savings
+
+        for year in range(1, years_to_retirement + 1):
+            # Add 12 months of contributions
+            for _ in range(12):
+                total_value = total_value * (1 + monthly_rate) + request.monthly_contribution
+                total_contributions += request.monthly_contribution
+
+            investment_returns = total_value - total_contributions
+
+            projections.append(
+                PensionProjection(
+                    age=request.current_age + year,
+                    year=year,
+                    total_contributions=round(total_contributions, 2),
+                    investment_returns=round(investment_returns, 2),
+                    total_value=round(total_value, 2)
+                )
+            )
+
+        # Calculate monthly retirement income (4% withdrawal rate annually)
+        monthly_retirement_income = (total_value * 0.04) / 12
+
+        return PensionCalculationResponse(
+            retirement_age=request.retirement_age,
+            years_to_retirement=years_to_retirement,
+            total_contributions=round(total_contributions, 2),
+            projected_value=round(total_value, 2),
+            monthly_retirement_income=round(monthly_retirement_income, 2),
+            projections=projections
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error calculating pension projection: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred during pension calculation: {str(e)}"
         )
 
 # For backward compatibility with older API endpoints
