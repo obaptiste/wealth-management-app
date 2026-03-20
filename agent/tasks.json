@@ -4,7 +4,8 @@
     "title": "Audit current app structure",
     "description": "Inspect the codebase and identify where portfolio logic, sentiment logic, data fetching, and dashboard rendering currently live.",
     "priority": "high",
-    "status": "todo",
+    "status": "done",
+    "completedAt": "2026-03-20",
     "dependsOn": [],
     "acceptanceCriteria": [
       "Relevant folders and files are identified",
