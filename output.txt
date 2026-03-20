@@ -1,0 +1,22 @@
+Read these files first:
+- CLAUDE.md
+- agent/memory/project-summary.md
+- agent/memory/architecture.md
+- agent/memory/current-state.md
+- agent/memory/decisions.md
+- agent/memory/next-steps.md
+- agent/tasks.json
+- agent/prompts/worker.md
+
+Then act as the implementation agent described in agent/prompts/worker.md.
+
+Complete only the highest-priority unblocked task.
+Do not code immediately.
+
+First produce:
+1. task selected
+2. understanding
+3. files to inspect
+4. files to change
+5. plan
+6. risks / assumptions

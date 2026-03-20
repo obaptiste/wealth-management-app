@@ -1,0 +1,133 @@
+[
+  {
+    "id": "task-001",
+    "title": "Audit current app structure",
+    "description": "Inspect the codebase and identify where portfolio logic, sentiment logic, data fetching, and dashboard rendering currently live.",
+    "priority": "high",
+    "status": "todo",
+    "dependsOn": [],
+    "acceptanceCriteria": [
+      "Relevant folders and files are identified",
+      "Current data flow is summarized",
+      "Risks or messy boundaries are documented in current-state.md"
+    ]
+  },
+  {
+    "id": "task-002",
+    "title": "Define shared domain types",
+    "description": "Create or consolidate TypeScript types for holdings, watchlist items, sentiment results, portfolio summaries, and historical snapshots.",
+    "priority": "high",
+    "status": "todo",
+    "dependsOn": ["task-001"],
+    "acceptanceCriteria": [
+      "Shared types exist in a clear location",
+      "Major domain objects have explicit types",
+      "Existing consumers compile against the updated types"
+    ]
+  },
+  {
+    "id": "task-003",
+    "title": "Create sentiment service module",
+    "description": "Implement a service that accepts raw sentiment inputs and returns normalized sentiment data for the rest of the app.",
+    "priority": "high",
+    "status": "todo",
+    "dependsOn": ["task-002"],
+    "acceptanceCriteria": [
+      "Service file exists",
+      "Normalization rules are explicit",
+      "Output type is stable and documented",
+      "No UI component performs raw sentiment normalization"
+    ]
+  },
+  {
+    "id": "task-004",
+    "title": "Create portfolio summary service",
+    "description": "Implement a service that calculates total value, allocation summaries, and simple gain/loss metrics from portfolio data.",
+    "priority": "high",
+    "status": "todo",
+    "dependsOn": ["task-002"],
+    "acceptanceCriteria": [
+      "Summary calculations are isolated from UI",
+      "Output types are predictable",
+      "Edge cases for missing or partial data are handled"
+    ]
+  },
+  {
+    "id": "task-005",
+    "title": "Refactor dashboard data loading",
+    "description": "Move dashboard-level data orchestration into a dedicated loader or server-side composition layer.",
+    "priority": "high",
+    "status": "todo",
+    "dependsOn": ["task-003", "task-004"],
+    "acceptanceCriteria": [
+      "Dashboard page no longer contains scattered business logic",
+      "Loader composes sentiment and portfolio data cleanly",
+      "Data dependencies are easier to understand"
+    ]
+  },
+  {
+    "id": "task-006",
+    "title": "Build sentiment trend chart input adapter",
+    "description": "Create an adapter that converts sentiment history into chart-friendly data structures.",
+    "priority": "medium",
+    "status": "todo",
+    "dependsOn": ["task-003"],
+    "acceptanceCriteria": [
+      "Chart data mapping is isolated",
+      "Adapter handles empty or incomplete history safely",
+      "Presentation components receive ready-to-render data"
+    ]
+  },
+  {
+    "id": "task-007",
+    "title": "Build portfolio summary cards",
+    "description": "Create UI cards for total portfolio value, allocation highlights, and top-level movement metrics.",
+    "priority": "medium",
+    "status": "todo",
+    "dependsOn": ["task-004", "task-005"],
+    "acceptanceCriteria": [
+      "Cards render from typed summary data",
+      "No calculation logic is embedded in card components",
+      "Loading and empty states are sensible"
+    ]
+  },
+  {
+    "id": "task-008",
+    "title": "Add watchlist signal panel",
+    "description": "Create a panel that shows selected watchlist assets with sentiment or catalyst-related indicators.",
+    "priority": "medium",
+    "status": "todo",
+    "dependsOn": ["task-003", "task-005"],
+    "acceptanceCriteria": [
+      "Watchlist panel uses normalized data",
+      "Signal logic is not hardcoded into presentation components",
+      "Panel can tolerate incomplete upstream data"
+    ]
+  },
+  {
+    "id": "task-009",
+    "title": "Add verification commands and documentation",
+    "description": "Document the commands used to typecheck, lint, build, and test the app or relevant modules.",
+    "priority": "medium",
+    "status": "todo",
+    "dependsOn": ["task-001"],
+    "acceptanceCriteria": [
+      "Verification commands are documented",
+      "Agent can report what checks should run after each task",
+      "Known command failures are noted if they exist"
+    ]
+  },
+  {
+    "id": "task-010",
+    "title": "Establish historical snapshot plan",
+    "description": "Define how the app should store or simulate historical portfolio and sentiment snapshots for charting and comparisons.",
+    "priority": "medium",
+    "status": "todo",
+    "dependsOn": ["task-003", "task-004"],
+    "acceptanceCriteria": [
+      "Snapshot model is described",
+      "Storage direction is documented",
+      "Trade-offs between mock and persistent history are explained"
+    ]
+  }
+]
