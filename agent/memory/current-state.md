@@ -28,8 +28,8 @@ Early build stage. Frontend pages are mostly static/mocked. Backend API is subst
 | `src/contexts/AuthContext.tsx` | Auth state + login/logout | Has broken API calls (see risks) |
 | `src/types/api.ts` | Shared API types (`User`, `ApiClient`, etc.) | Defines `ApiClient` interface separately from implementation |
 | `src/types/assets.ts` | Asset and AssetWithPerformance types | Aligned with backend schemas |
-| `src/types/portfolio.ts` | Portfolio types (v1) | **Duplicate of portfolios.ts** |
-| `src/types/portfolios.ts` | Portfolio types (v2) | **Duplicate of portfolio.ts** — one must be canonical |
+| `src/types/portfolios.ts` | Canonical portfolio types | Consolidated as single source of truth in task-002 |
+| `src/types/domain.ts` | Shared domain types | Defines watchlist, sentiment, holdings, and snapshot shapes (task-002) |
 | `src/types/auth.ts` | Auth types | `AuthContextType` interface lives here |
 | `src/types/chart.ts` | Chart-related types | Not yet inspected |
 | `src/types/components.ts` | Component prop types | Not yet inspected |
@@ -68,10 +68,10 @@ Early build stage. Frontend pages are mostly static/mocked. Backend API is subst
 - The `ApiClient` interface in `types/api.ts` defines `.get()` and `.post()`, but this interface is not implemented by the class in `lib/api.ts`.
 - Auth endpoint paths also mismatch: AuthContext calls `/api/auth/current-user` but backend exposes `/auth/me`.
 
-### 3. Duplicate type definitions
-- `types/portfolio.ts` and `types/portfolios.ts` are nearly identical.
-- `PortfolioSummary.last_updated` is `string | undefined` in `portfolio.ts` but required `string` in `portfolios.ts`.
-- Both are exported from `types/index.ts` causing likely name collisions.
+### 3. Type consolidation completed (task-002)
+- Removed duplicate `types/portfolio.ts`; `types/portfolios.ts` is now canonical.
+- Barrel exports now reference only canonical portfolio types.
+- Added `types/domain.ts` for shared `watchlist`, `sentiment`, `holding`, and `historical snapshot` domain contracts.
 
 ### 4. No service layer
 - `lib/api.ts` is purely a data-access / HTTP client layer.

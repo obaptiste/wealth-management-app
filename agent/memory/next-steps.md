@@ -1,12 +1,11 @@
 # Next Steps
 
 ## Immediate next steps
-- **task-002**: Define shared domain types — consolidate `portfolio.ts` / `portfolios.ts` duplicates, establish canonical location for all domain types
-- **task-009**: Document verification commands (typecheck, lint, build) — unblocked after task-001
+- **task-003**: Create sentiment service module — now unblocked by type consolidation
+- **task-004**: Create portfolio summary service — now unblocked by canonical shared domain types
+- **task-009**: Document verification commands (typecheck, lint, build)
 
 ## What is blocked
-- task-003 (sentiment service) — blocked on task-002 (shared types)
-- task-004 (portfolio summary service) — blocked on task-002
 - task-005 (dashboard data loading) — blocked on task-003 and task-004
 
 ## What needs review

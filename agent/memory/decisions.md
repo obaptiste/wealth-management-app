@@ -30,13 +30,13 @@ Context:
 Both `types/portfolio.ts` and `types/portfolios.ts` define nearly identical Portfolio interfaces. Both are re-exported from the barrel `types/index.ts`, causing potential name collisions.
 
 Decision:
-To be confirmed in task-002. Likely canonicalize `portfolios.ts` and remove `portfolio.ts`.
+Canonicalize `portfolios.ts` and remove `portfolio.ts`. Add a dedicated `types/domain.ts` file for non-portfolio shared domain shapes.
 
 Reason:
 Single source of truth prevents drift. The `last_updated` nullability difference between the two files is a sign of divergence that will cause bugs.
 
 Impact:
-Any consumer importing from `types/portfolio.ts` must be updated.
+Any consumer must import portfolio types from `types/portfolios.ts` (or the main type barrel). Shared watchlist/sentiment/snapshot contracts now live in `types/domain.ts`.
 
 ---
 
