@@ -1,12 +1,13 @@
 # Next Steps
 
 ## Immediate next steps
-- **task-003**: Create sentiment service module — now unblocked by type consolidation
-- **task-004**: Create portfolio summary service — now unblocked by canonical shared domain types
+- **task-004**: Create portfolio summary service — now the highest-priority unblocked task
+- **task-005**: Refactor dashboard data loading (still blocked by task-004)
 - **task-009**: Document verification commands (typecheck, lint, build)
 
 ## What is blocked
-- task-005 (dashboard data loading) — blocked on task-003 and task-004
+- task-005 (dashboard data loading) — blocked on task-004
+- task-006 (sentiment trend chart adapter) — blocked on integrating normalized sentiment history into dashboard loaders
 
 ## What needs review
 - AuthContext.tsx: calls `apiClient.get()` / `apiClient.post()` which are not exposed — needs fix before any auth-dependent page can work
@@ -16,7 +17,7 @@
 ## What can be deferred
 - Watchlist domain (task-008): no backend support exists yet
 - Historical snapshot plan (task-010): requires service layer first
-- Sentiment trend chart (task-006): requires sentiment service (task-003) first
+- Full sentiment UI wiring: service exists now, but UI integration can follow portfolio service and data-loader work
 
 ## Updating this file
 After each completed task, add:
