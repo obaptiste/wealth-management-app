@@ -37,6 +37,7 @@ Early build stage. Frontend pages are mostly static/mocked. Backend API is subst
 | `src/types/theme.ts` | Theme types | Not yet inspected |
 | `src/styles/chakra-tailwind.css` | Chakra + Tailwind bridge | Exists |
 | `src/styles/theme.ts` | Chakra theme config | Not yet inspected |
+| `src/services/sentiment.ts` | Sentiment normalization service | Added in task-003; normalizes score/label/confidence + batch payloads |
 
 ### Backend file map
 
@@ -73,34 +74,38 @@ Early build stage. Frontend pages are mostly static/mocked. Backend API is subst
 - Barrel exports now reference only canonical portfolio types.
 - Added `types/domain.ts` for shared `watchlist`, `sentiment`, `holding`, and `historical snapshot` domain contracts.
 
-### 4. No service layer
-- `lib/api.ts` is purely a data-access / HTTP client layer.
-- No service layer exists for portfolio summary calculations, sentiment normalization, or watchlist signals.
+### 4. Sentiment service layer introduced (task-003)
+- Added `src/services/sentiment.ts` with explicit normalization rules for label, score, and confidence.
+- Service returns stable `SentimentResult` objects and includes a batch adapter (`normalizeSentimentBatch`).
+- UI still needs to consume this service in future work (task-006/task-005).
+
+### 5. No portfolio summary service yet
+- No service layer exists yet for portfolio summary calculations or watchlist signal composition.
 - The backend performs portfolio performance calculations inside API route handlers (not in a service module).
 
-### 5. No sentiment UI
+### 6. No sentiment UI
 - Backend has a fully-functional FinBERT sentiment analysis pipeline and Twitter fetcher.
 - No frontend page or component exists to display sentiment results.
 
-### 6. No watchlist feature
+### 7. No watchlist feature
 - Architecture docs call for a watchlist domain; nothing exists on frontend or backend.
 
-### 7. CLAUDE.md stack mismatch
+### 8. CLAUDE.md stack mismatch
 - CLAUDE.md lists "Prisma" as the database ORM, but the actual stack uses SQLAlchemy + Alembic.
 
-### 8. Pydantic v1/v2 mixing
+### 9. Pydantic v1/v2 mixing
 - `schemas.py` uses `@validator` (Pydantic v1) inside a Pydantic v2 `BaseModel`.
   This is allowed in compatibility mode but is a known fragility point.
 
-### 9. `config.py` `is_production` is a method but used as a property
+### 10. `config.py` `is_production` is a method but used as a property
 - `settings.is_production` is defined as a method `def is_production(self) -> bool` but used as `settings.is_production` (without calling it) in `main.py` conditional expressions.
 
 ---
 
 ## Likely priorities (updated)
-1. Fix AuthContext to use the correct apiClient methods and correct API paths
-2. Consolidate duplicate type files (`portfolio.ts` vs `portfolios.ts`)
-3. Build service layer for portfolio summary (calculation logic)
+1. Create portfolio summary service (task-004)
+2. Refactor dashboard data loading (task-005)
+3. Fix AuthContext to use the correct apiClient methods and correct API paths
 4. Connect dashboard and portfolio pages to real API data
-5. Build sentiment UI
+5. Build sentiment UI + trend adapter (task-006)
 6. Introduce watchlist domain (backend + frontend)

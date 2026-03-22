@@ -34,7 +34,7 @@
     "title": "Create sentiment service module",
     "description": "Implement a service that accepts raw sentiment inputs and returns normalized sentiment data for the rest of the app.",
     "priority": "high",
-    "status": "todo",
+    "status": "done",
     "dependsOn": [
       "task-002"
     ],
@@ -43,7 +43,8 @@
       "Normalization rules are explicit",
       "Output type is stable and documented",
       "No UI component performs raw sentiment normalization"
-    ]
+    ],
+    "completedAt": "2026-03-22"
   },
   {
     "id": "task-004",

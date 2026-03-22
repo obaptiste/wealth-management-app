@@ -38,6 +38,20 @@ Single source of truth prevents drift. The `last_updated` nullability difference
 Impact:
 Any consumer must import portfolio types from `types/portfolios.ts` (or the main type barrel). Shared watchlist/sentiment/snapshot contracts now live in `types/domain.ts`.
 
+
+### [2026-03-22] Add a dedicated sentiment normalization service module
+Context:
+Task-003 requires sentiment normalization rules to be explicit and reusable so that presentation components do not transform raw payloads directly.
+
+Decision:
+Create `frontend/src/services/sentiment.ts` as the canonical normalization layer for raw sentiment payloads, with pure functions for score, confidence, label, single-result mapping, and batch mapping.
+
+Reason:
+A dedicated service keeps normalization deterministic and testable, avoids duplicated ad-hoc transforms in UI code, and gives downstream components a stable `SentimentResult` shape.
+
+Impact:
+Future dashboard loaders/components should use `normalizeSentimentResult` / `normalizeSentimentBatch` instead of parsing sentiment data in page files. This unblocks task-006 (trend adapter) and supports task-005 data orchestration.
+
 ---
 
 ## Decision log format
