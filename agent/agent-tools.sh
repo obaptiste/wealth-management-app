@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 set -euo pipefail
 
@@ -57,11 +57,14 @@ agent-status() {
 
   if [[ -f "$AGENT_TASKS_FILE" ]]; then
     echo "Task summary:"
-    python3 - <<'PY'
+    AGENT_TASKS_FILE="$AGENT_TASKS_FILE" python3 - <<'PY'
 import json
+import os
 from collections import Counter
 
-with open("agent/tasks.json", "r", encoding="utf-8") as f:
+path = os.environ["AGENT_TASKS_FILE"]
+
+with open(path, "r", encoding="utf-8") as f:
     tasks = json.load(f)
 
 status_counts = Counter(task.get("status", "unknown") for task in tasks)
@@ -92,10 +95,13 @@ agent-next() {
     return 1
   fi
 
-  python3 - <<'PY'
+  AGENT_TASKS_FILE="$AGENT_TASKS_FILE" python3 - <<'PY'
 import json
+import os
 
-with open("agent/tasks.json", "r", encoding="utf-8") as f:
+path = os.environ["AGENT_TASKS_FILE"]
+
+with open(path, "r", encoding="utf-8") as f:
     tasks = json.load(f)
 
 done_ids = {t["id"] for t in tasks if t.get("status") == "done"}
@@ -227,12 +233,13 @@ agent-done() {
     return 1
   fi
 
-  python3 - "$task_id" <<'PY'
+  AGENT_TASKS_FILE="$AGENT_TASKS_FILE" python3 - "$task_id" <<'PY'
 import json
+import os
 import sys
 
 task_id = sys.argv[1]
-path = "agent/tasks.json"
+path = os.environ["AGENT_TASKS_FILE"]
 
 with open(path, "r", encoding="utf-8") as f:
     tasks = json.load(f)
@@ -263,12 +270,13 @@ agent-in-progress() {
     return 1
   fi
 
-  python3 - "$task_id" <<'PY'
+  AGENT_TASKS_FILE="$AGENT_TASKS_FILE" python3 - "$task_id" <<'PY'
 import json
+import os
 import sys
 
 task_id = sys.argv[1]
-path = "agent/tasks.json"
+path = os.environ["AGENT_TASKS_FILE"]
 
 with open(path, "r", encoding="utf-8") as f:
     tasks = json.load(f)
@@ -296,15 +304,15 @@ agent-help() {
   cat <<'EOF'
 Available commands:
 
-agent-check         # verify scaffold files exist
-agent-status        # show task summary
-agent-next          # show next unblocked task
-agent-start         # print worker prompt
-agent-review        # print reviewer prompt
-agent-plan          # print planner prompt
-agent-log           # create a dated session log
-agent-done ID       # mark a task done
-agent-in-progress ID# mark a task in progress
-agent-help          # show this help
+agent-check          # verify scaffold files exist
+agent-status         # show task summary
+agent-next           # show next unblocked task
+agent-start          # print worker prompt
+agent-review         # print reviewer prompt
+agent-plan           # print planner prompt
+agent-log            # create a dated session log
+agent-done ID        # mark a task done
+agent-in-progress ID # mark a task in progress
+agent-help           # show this help
 EOF
 }

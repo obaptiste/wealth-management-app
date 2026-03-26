@@ -1,6 +1,16 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
+import type { CreateAssetData, UpdateAssetData } from '@/types/assets';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+interface PensionPlanUpdateData {
+  name?: string;
+  targetRetirementAge?: number;
+  currentAge?: number;
+  monthlyContribution?: number;
+  expectedReturn?: number;
+  currentSavings?: number;
+}
 
 class ApiClient {
   private client: AxiosInstance;
@@ -86,18 +96,23 @@ class ApiClient {
     return response.data;
   }
 
-  async createAsset(portfolioId: string, data: any) {
+  async createAsset(portfolioId: string, data: CreateAssetData) {
     const response = await this.client.post(`/portfolios/${portfolioId}/assets`, data);
     return response.data;
   }
 
-  async updateAsset(portfolioId: string, assetId: string, data: any) {
+  async updateAsset(portfolioId: string, assetId: string, data: UpdateAssetData) {
     const response = await this.client.put(`/portfolios/${portfolioId}/assets/${assetId}`, data);
     return response.data;
   }
 
   async deleteAsset(portfolioId: string, assetId: string) {
     const response = await this.client.delete(`/portfolios/${portfolioId}/assets/${assetId}`);
+    return response.data;
+  }
+
+  async getSentimentHistory(symbol: string, days: number = 7) {
+    const response = await this.client.get(`/sentiment/history/${symbol}?days=${days}`);
     return response.data;
   }
 
@@ -158,7 +173,7 @@ class ApiClient {
     return response.data;
   }
 
-  async updatePensionPlan(id: string, data: any) {
+  async updatePensionPlan(id: string, data: PensionPlanUpdateData) {
     const response = await this.client.put(`/pension/plans/${id}`, data);
     return response.data;
   }

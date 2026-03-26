@@ -51,7 +51,7 @@
     "title": "Create portfolio summary service",
     "description": "Implement a service that calculates total value, allocation summaries, and simple gain/loss metrics from portfolio data.",
     "priority": "high",
-    "status": "todo",
+    "status": "done",
     "dependsOn": [
       "task-002"
     ],
@@ -59,14 +59,15 @@
       "Summary calculations are isolated from UI",
       "Output types are predictable",
       "Edge cases for missing or partial data are handled"
-    ]
+    ],
+    "completedAt": "2026-03-26"
   },
   {
     "id": "task-005",
     "title": "Refactor dashboard data loading",
     "description": "Move dashboard-level data orchestration into a dedicated loader or server-side composition layer.",
     "priority": "high",
-    "status": "todo",
+    "status": "done",
     "dependsOn": [
       "task-003",
       "task-004"
@@ -75,7 +76,8 @@
       "Dashboard page no longer contains scattered business logic",
       "Loader composes sentiment and portfolio data cleanly",
       "Data dependencies are easier to understand"
-    ]
+    ],
+    "completedAt": "2026-03-26"
   },
   {
     "id": "task-006",
@@ -129,7 +131,7 @@
     "title": "Add verification commands and documentation",
     "description": "Document the commands used to typecheck, lint, build, and test the app or relevant modules.",
     "priority": "medium",
-    "status": "todo",
+    "status": "done",
     "dependsOn": [
       "task-001"
     ],
@@ -137,7 +139,8 @@
       "Verification commands are documented",
       "Agent can report what checks should run after each task",
       "Known command failures are noted if they exist"
-    ]
+    ],
+    "completedAt": "2026-03-26"
   },
   {
     "id": "task-010",

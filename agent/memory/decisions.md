@@ -54,6 +54,51 @@ Future dashboard loaders/components should use `normalizeSentimentResult` / `nor
 
 ---
 
+### [2026-03-26] Keep agent workflow and verification commands in AGENTS.md
+Context:
+The repo already contains an agent scaffold in `agent/`, but the top-level `AGENTS.md` only described high-level coding principles and did not list the actual workflow or runnable commands.
+
+Decision:
+Document the required agent reading order, task-selection rules, memory update expectations, helper commands from `agent/agent-tools.sh`, and the main frontend/backend verification commands directly in `AGENTS.md`.
+
+Reason:
+The implementation workflow should be discoverable from the primary repo instructions. Keeping the command list in one obvious place reduces guesswork and makes task completion criteria more testable.
+
+Impact:
+Contributors should use `AGENTS.md` as the top-level workflow reference, then follow the detailed prompts and memory files under `agent/`. Task-009 can be treated as completed documentation work.
+
+---
+
+### [2026-03-26] Model portfolio summaries as a dedicated frontend service
+Context:
+Task-004 requires summary calculations to live outside UI components, and the current frontend pages still use hardcoded values instead of a reusable calculation layer.
+
+Decision:
+Add `frontend/src/services/portfolio-summary.ts` as a pure service that accepts partial asset inputs and returns a `PortfolioSummaryResult` containing summary totals, allocation slices, and simple gain/loss metrics.
+
+Reason:
+This keeps arithmetic out of page components, gives task-005/task-007 a stable typed input, and makes fallback handling for missing prices explicit in one place.
+
+Impact:
+Future dashboard loaders and portfolio cards should call `summarizePortfolio()` instead of calculating totals or allocation percentages inline. Duplicate symbol rows are merged into one allocation slice, and missing current prices fall back to cost-based values.
+
+---
+
+### [2026-03-26] Keep dashboard data orchestration in a dedicated route loader until auth is server-safe
+Context:
+Task-005 requires dashboard composition to move out of the page, but the current frontend auth/data client still depends on browser-only token storage and redirect behavior.
+
+Decision:
+Create `frontend/src/app/dashboard/data.ts` as a client-safe route-level loader that composes portfolio detail fetches, portfolio summary aggregation, and optional sentiment history lookup for the leading holding.
+
+Reason:
+This removes scattered business logic from `dashboard/page.tsx` immediately without introducing a server-side fetch path that would break under the current `localStorage`-based auth model.
+
+Impact:
+The dashboard page now focuses on request-state rendering, while future auth changes can migrate the loader server-side without reintroducing business logic into the UI component.
+
+---
+
 ## Decision log format
 Use this format for future entries:
 
