@@ -1,7 +1,9 @@
 import apiClient from '@/lib/api';
 import { summarizePortfolio } from '@/services/portfolio-summary';
 import { normalizeSentimentResult } from '@/services/sentiment';
+import { mapSentimentTrendHistory } from '@/services/sentiment-trend';
 import type { AssetWithPerformance } from '@/types/assets';
+import type { SentimentChartPoint } from '@/types/chart';
 import type {
   PortfolioAllocationSlice,
   PortfolioSummaryResult,
@@ -38,6 +40,7 @@ export interface DashboardData {
   top_allocations: PortfolioAllocationSlice[];
   portfolios: DashboardPortfolioSnapshot[];
   primary_sentiment: SentimentResult | null;
+  sentiment_trend: SentimentChartPoint[];
 }
 
 function flattenPortfolioAssets(portfolios: PortfolioWithSummary[]): AssetWithPerformance[] {
@@ -87,6 +90,20 @@ async function loadPrimarySentiment(symbol?: string): Promise<SentimentResult | 
   }
 }
 
+async function loadSentimentTrend(symbol?: string): Promise<SentimentChartPoint[]> {
+  if (!symbol) {
+    return [];
+  }
+
+  try {
+    const history = await apiClient.getSentimentHistory(symbol, 7) as SentimentHistoryResponse;
+    return mapSentimentTrendHistory(history);
+  } catch (error) {
+    console.warn(`Dashboard sentiment trend unavailable for ${symbol}`, error);
+    return [];
+  }
+}
+
 async function loadPortfolioDetails(): Promise<PortfolioWithSummary[]> {
   const portfolios = await apiClient.getPortfolios() as Portfolio[];
 
@@ -104,7 +121,10 @@ export async function loadDashboardData(): Promise<DashboardData> {
   const allAssets = flattenPortfolioAssets(portfolios);
   const summaryResult = summarizePortfolio(allAssets);
   const primarySymbol = summaryResult.allocations[0]?.symbol;
-  const primarySentiment = await loadPrimarySentiment(primarySymbol);
+  const [primarySentiment, sentimentTrend] = await Promise.all([
+    loadPrimarySentiment(primarySymbol),
+    loadSentimentTrend(primarySymbol),
+  ]);
 
   return {
     portfolio_count: portfolios.length,
@@ -114,5 +134,6 @@ export async function loadDashboardData(): Promise<DashboardData> {
     top_allocations: summaryResult.allocations.slice(0, 3),
     portfolios: buildPortfolioSnapshots(portfolios),
     primary_sentiment: primarySentiment,
+    sentiment_trend: sentimentTrend,
   };
 }

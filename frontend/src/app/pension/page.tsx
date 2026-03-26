@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Box,
   Container,
@@ -9,7 +9,6 @@ import {
   VStack,
   HStack,
   Input,
-  Button,
   Card,
   CardBody,
   CardHeader,
@@ -17,7 +16,6 @@ import {
   GridItem,
   useColorModeValue,
   Icon,
-  Flex,
   FormControl,
   FormLabel,
   Slider,
@@ -35,18 +33,16 @@ import {
   Tr,
   Th,
   Td,
-  Badge,
 } from '@chakra-ui/react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   TbPigMoney,
   TbTrendingUp,
   TbCalendar,
   TbCoin,
-  TbChartLine,
   TbReceipt,
 } from 'react-icons/tb';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { apiClient } from '@/lib/api';
 
 const MotionBox = motion(Box);
@@ -76,7 +72,6 @@ export default function PensionPage() {
   const [currentSavings, setCurrentSavings] = useState('10000');
   const [expectedReturn, setExpectedReturn] = useState(7);
   const [result, setResult] = useState<CalculationResult | null>(null);
-  const [loading, setLoading] = useState(false);
 
   const bgGradient = useColorModeValue(
     'linear(to-br, accent.50, brand.50, slate.100)',
@@ -85,24 +80,27 @@ export default function PensionPage() {
 
   const cardBg = useColorModeValue('white', 'slate.800');
   const accentColor = useColorModeValue('brand.500', 'brand.400');
+  const summaryGradient = useColorModeValue(
+    'linear(to-br, brand.500, accent.500)',
+    'linear(to-br, brand.600, accent.600)'
+  );
+  const tooltipBg = useColorModeValue('#fff', '#1E293B');
+  const tableHoverBg = useColorModeValue('slate.50', 'slate.700');
 
-  const calculateProjection = async () => {
-    setLoading(true);
+  const calculateProjection = useCallback(async () => {
     try {
       const response = await apiClient.calculatePensionProjection({
-        current_age: parseInt(currentAge),
-        retirement_age: parseInt(retirementAge),
-        monthly_contribution: parseFloat(monthlyContribution),
-        current_savings: parseFloat(currentSavings),
-        expected_return: expectedReturn,
+        currentAge: parseInt(currentAge, 10),
+        retirementAge: parseInt(retirementAge, 10),
+        monthlyContribution: parseFloat(monthlyContribution),
+        currentSavings: parseFloat(currentSavings),
+        expectedReturn,
       });
       setResult(response);
     } catch (error) {
       console.error('Error calculating projection:', error);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [currentAge, currentSavings, expectedReturn, monthlyContribution, retirementAge]);
 
   useEffect(() => {
     if (
@@ -114,7 +112,7 @@ export default function PensionPage() {
     ) {
       calculateProjection();
     }
-  }, [currentAge, retirementAge, monthlyContribution, currentSavings, expectedReturn]);
+  }, [calculateProjection, currentAge, retirementAge, monthlyContribution, currentSavings, expectedReturn]);
 
   const chartData = result?.projections.map((p) => ({
     age: p.age,
@@ -234,10 +232,7 @@ export default function PensionPage() {
                       animate={{ opacity: 1, scale: 1 }}
                       p={6}
                       borderRadius="xl"
-                      bgGradient={useColorModeValue(
-                        'linear(to-br, brand.500, accent.500)',
-                        'linear(to-br, brand.600, accent.600)'
-                      )}
+                      bgGradient={summaryGradient}
                       color="white"
                     >
                       <VStack spacing={3} align="stretch">
@@ -395,7 +390,7 @@ export default function PensionPage() {
                         />
                         <Tooltip
                           contentStyle={{
-                            backgroundColor: useColorModeValue('#fff', '#1E293B'),
+                            backgroundColor: tooltipBg,
                             border: '1px solid #00AC74',
                             borderRadius: '8px',
                           }}
@@ -448,8 +443,8 @@ export default function PensionPage() {
                       <Tbody>
                         {result.projections
                           .filter((_, index) => index % 5 === 0 || index === result.projections.length - 1)
-                          .map((projection, index) => (
-                            <Tr key={projection.age} _hover={{ bg: useColorModeValue('slate.50', 'slate.700') }}>
+                          .map((projection) => (
+                            <Tr key={projection.age} _hover={{ bg: tableHoverBg }}>
                               <Td fontWeight="600">{projection.age}</Td>
                               <Td isNumeric fontWeight="700" color="brand.500">
                                 ${projection.total_value.toLocaleString()}

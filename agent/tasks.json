@@ -84,7 +84,7 @@
     "title": "Build sentiment trend chart input adapter",
     "description": "Create an adapter that converts sentiment history into chart-friendly data structures.",
     "priority": "medium",
-    "status": "todo",
+    "status": "done",
     "dependsOn": [
       "task-003"
     ],
@@ -92,14 +92,15 @@
       "Chart data mapping is isolated",
       "Adapter handles empty or incomplete history safely",
       "Presentation components receive ready-to-render data"
-    ]
+    ],
+    "completedAt": "2026-03-26"
   },
   {
     "id": "task-007",
     "title": "Build portfolio summary cards",
     "description": "Create UI cards for total portfolio value, allocation highlights, and top-level movement metrics.",
     "priority": "medium",
-    "status": "todo",
+    "status": "done",
     "dependsOn": [
       "task-004",
       "task-005"
@@ -108,7 +109,8 @@
       "Cards render from typed summary data",
       "No calculation logic is embedded in card components",
       "Loading and empty states are sensible"
-    ]
+    ],
+    "completedAt": "2026-03-26"
   },
   {
     "id": "task-008",

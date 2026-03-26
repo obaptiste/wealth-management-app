@@ -99,6 +99,66 @@ The dashboard page now focuses on request-state rendering, while future auth cha
 
 ---
 
+### [2026-03-26] Model sentiment history as chart-specific frontend points
+Context:
+Task-006 requires the app to stop passing raw `sentiment/history` payloads toward presentation code and instead provide a stable chart-oriented shape that tolerates incomplete upstream data.
+
+Decision:
+Add `frontend/src/services/sentiment-trend.ts` as a pure adapter that maps raw history entries into `SentimentChartPoint` values.
+
+Reason:
+This keeps history normalization and score derivation in one place, avoids leaking backend response details into chart components, and gives future sentiment visualizations a single typed input contract.
+
+Impact:
+Any dashboard or watchlist chart can consume `SentimentChartPoint[]` directly. Invalid or partial history rows are filtered or normalized before they reach presentation code.
+
+---
+
+### [2026-03-26] Align frontend auth calls with the backend before expanding UI work
+Context:
+The clean-build pass exposed that `AuthContext.tsx` and the portfolio detail page still depended on nonexistent generic API client methods, while the backend auth flow actually uses `/auth/token` and `/auth/me`.
+
+Decision:
+Keep `lib/api.ts` as the single access layer and update it to expose backend-aligned named auth methods (`login()` using form data and `getCurrentUser()`), then update consumers to call those methods directly.
+
+Reason:
+This preserves the existing explicit-client pattern and removes a class of compile-time and runtime mismatches without reintroducing raw URL calls throughout the frontend.
+
+Impact:
+Auth-related consumers now compile cleanly, token storage stays centralized in the frontend auth flow, and future auth refactors have a clearer starting point.
+
+---
+
+### [2026-03-26] Render dashboard summary state through reusable card components
+Context:
+Task-007 requires the dashboard summary UI to be reusable and typed, while the current dashboard page still contained card markup and text shaping inline.
+
+Decision:
+Add `frontend/src/components/dashboard/DashboardSummaryCards.tsx` as the reusable presentation layer for summary cards and keep the page responsible only for loader state orchestration.
+
+Reason:
+This keeps calculation and data composition outside the UI, centralizes the dashboard card markup in one place, and makes loading and empty states consistent without duplicating card structure.
+
+Impact:
+Future dashboard or portfolio views can reuse the same summary card component shape, and the route page is simpler to evolve because it no longer owns individual card markup.
+
+---
+
+### [2026-03-26] Keep sentiment chart transformation separate from chart rendering
+Context:
+The dashboard needed a sentiment trend chart, but the backend `sentiment/history` payload is not a presentation-ready chart format.
+
+Decision:
+Add a dedicated `frontend/src/services/sentiment-trend.ts` adapter and keep `SentimentTrendChart.tsx` focused only on rendering `SentimentChartPoint[]`.
+
+Reason:
+This preserves the service-layer boundary established in earlier tasks, avoids pushing API-shape knowledge into chart components, and makes empty or malformed history handling deterministic in one place.
+
+Impact:
+Future dashboard or watchlist charts can reuse the same adapted sentiment series without duplicating normalization logic.
+
+---
+
 ## Decision log format
 Use this format for future entries:
 

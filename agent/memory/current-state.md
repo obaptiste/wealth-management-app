@@ -118,11 +118,34 @@ Early build stage. Frontend pages are mostly static/mocked. Backend API is subst
 - `frontend/src/lib/api.ts` now exposes `getSentimentHistory()` and typed payloads for asset/pension updates.
 - Targeted ESLint for the changed dashboard/API files passes. Full frontend `tsc --noEmit` still fails in pre-existing files: `pension/page.tsx`, `portfolio/[id]/page.tsx`, and `AuthContext.tsx`.
 
+### 14. Sentiment history now has a dedicated chart adapter
+- Added `frontend/src/services/sentiment-trend.ts` as the canonical adapter from backend `sentiment/history` payloads to chart-ready frontend points.
+- The adapter normalizes dates, clamps sentiment percentages, computes a stable `score` in `[-1, 1]`, drops invalid dates, and returns an empty list for missing history.
+- `frontend/src/types/chart.ts` now defines `SentimentChartPoint` so chart consumers can rely on one typed shape.
+
+### 15. Frontend build verification is clean again
+- Fixed the remaining frontend TypeScript and ESLint blockers in auth, portfolio detail, pension, currency, insurance, layout, and the portfolio overview page.
+- `frontend/src/lib/api.ts` now matches the backend auth contract more closely by using `/auth/token` for login and exposing `getCurrentUser()`.
+- `frontend/src/contexts/AuthContext.tsx` now uses named `apiClient` methods instead of nonexistent generic `.get()` / `.post()` calls.
+- The `/portfolio` route is now explicitly client-rendered so the production build can safely include its chart/motion dependencies.
+- Verification now passes for `./node_modules/.bin/tsc --noEmit`, targeted ESLint, and `npm run build` in `frontend/`.
+
+### 16. Dashboard summary cards are now reusable components
+- Added `frontend/src/components/dashboard/DashboardSummaryCards.tsx` as the shared rendering layer for dashboard summary cards.
+- The component renders typed portfolio value, asset count, sentiment signal, and allocation highlight cards directly from `DashboardData`.
+- Loading state now uses card-shaped skeletons instead of a generic spinner, and empty states fall back to neutral copy when no holdings exist.
+- `frontend/src/app/dashboard/page.tsx` now focuses on request-state orchestration and delegates summary rendering to the component.
+
+### 17. Dashboard now renders a sentiment trend chart
+- Added `frontend/src/services/sentiment-trend.ts` as the canonical adapter from backend `sentiment/history` payloads to chart-ready `SentimentChartPoint[]`.
+- `frontend/src/types/chart.ts` now defines `SentimentChartPoint` for reusable chart consumers.
+- `frontend/src/app/dashboard/data.ts` now exposes `sentiment_trend` alongside summary metrics and primary sentiment.
+- Added `frontend/src/components/dashboard/SentimentTrendChart.tsx` to render the adapted trend data with chart-specific empty and loading states.
+- Verification passes for targeted ESLint, `./node_modules/.bin/tsc --noEmit`, and `npm run build` in `frontend/`.
+
 ---
 
 ## Likely priorities (updated)
-1. Fix AuthContext to use the correct apiClient methods and correct API paths
-2. Build sentiment trend chart input adapter (task-006)
-3. Build portfolio summary cards (task-007)
-4. Connect the portfolio detail page to the named apiClient methods
-5. Introduce watchlist domain (backend + frontend)
+1. Introduce watchlist domain (backend + frontend)
+2. Establish historical snapshot plan (task-010)
+3. Review the frontend auth flow against the backend runtime contract beyond compile-time alignment

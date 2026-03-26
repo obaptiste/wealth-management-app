@@ -1,4 +1,4 @@
-//the portfolio page
+'use client';
 
 import { Box, Heading, Text, SimpleGrid, Button, Progress, VStack, Card as ChakraCard, CardHeader, CardBody } from "@chakra-ui/react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";

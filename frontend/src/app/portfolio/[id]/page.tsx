@@ -1,15 +1,12 @@
 'use client';
-// Add CSS module imports
+
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import * as api from '@/lib/api';
-import { PortfolioWithSummary } from '@/types/';
-// Removing unused imports
+import apiClient from '@/lib/api';
+import type { PortfolioWithSummary } from '@/types/';
 
-// Helper function to get portfolio data
 const getPortfolio = async (id: number): Promise<PortfolioWithSummary> => {
-  const { data } = await api.get(`/portfolios/${id}`);
-  return data as PortfolioWithSummary;
+  return apiClient.getPortfolio(String(id)) as Promise<PortfolioWithSummary>;
 };
 
 export default function PortfolioDetailPage() {
@@ -48,15 +45,15 @@ export default function PortfolioDetailPage() {
         <h2>Portfolio Summary</h2>
         <p>Total Value: ${portfolio.summary.total_value.toFixed(2)}</p>
         <p>Total Cost: ${portfolio.summary.total_cost.toFixed(2)}</p>
-        <p>Profit/Loss: ${portfolio.summary.total_profit_loss.toFixed(2)} 
+        <p>Profit/Loss: ${portfolio.summary.total_profit_loss.toFixed(2)}
           ({portfolio.summary.total_profit_loss_percent.toFixed(2)}%)
         </p>
       </div>
-      
+
       <div>
         <h2>Assets</h2>
         <ul>
-          {portfolio.assets.map(asset => (
+          {portfolio.assets.map((asset) => (
             <li key={asset.id}>
               {asset.symbol}: {asset.quantity} shares @ ${asset.purchase_price}
               (Current: ${asset.current_price})
