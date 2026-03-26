@@ -105,12 +105,24 @@ Early build stage. Frontend pages are mostly static/mocked. Backend API is subst
 - Agent helper commands are documented via `source agent/agent-tools.sh && ...`.
 - Verification guidance now points contributors to run the smallest relevant command set instead of relying on vague "run checks" language.
 
+### 12. Portfolio summary service has been added on the frontend
+- Added `frontend/src/services/portfolio-summary.ts` as a pure calculation layer for portfolio totals, allocation slices, and gain/loss metrics.
+- The service aggregates duplicate symbols, derives fallback values when price fields are missing, and returns stable typed output for future dashboard loaders/cards.
+- `frontend/src/types/domain.ts` now includes `PortfolioAllocationSlice`, `PortfolioGainLossMetrics`, and `PortfolioSummaryResult`.
+- Frontend dependencies were installed and task-004 verification was run. Current TypeScript/lint failures are in pre-existing files outside the new service (`pension/page.tsx`, `portfolio/[id]/page.tsx`, `AuthContext.tsx`, `currency/page.tsx`, `insurance/page.tsx`, `layout.tsx`, `lib/api.ts`).
+
+### 13. Dashboard data now flows through a dedicated loader
+- Added `frontend/src/app/dashboard/data.ts` as the route-level composition layer for dashboard data.
+- The loader fetches portfolio detail records, aggregates all holdings through `summarizePortfolio()`, and derives an optional primary sentiment signal from the largest holding's stored sentiment history.
+- `frontend/src/app/dashboard/page.tsx` now renders loading, error, and populated states from loader output instead of hardcoded metric strings.
+- `frontend/src/lib/api.ts` now exposes `getSentimentHistory()` and typed payloads for asset/pension updates.
+- Targeted ESLint for the changed dashboard/API files passes. Full frontend `tsc --noEmit` still fails in pre-existing files: `pension/page.tsx`, `portfolio/[id]/page.tsx`, and `AuthContext.tsx`.
+
 ---
 
 ## Likely priorities (updated)
-1. Create portfolio summary service (task-004)
-2. Refactor dashboard data loading (task-005)
-3. Fix AuthContext to use the correct apiClient methods and correct API paths
-4. Connect dashboard and portfolio pages to real API data
-5. Build sentiment UI + trend adapter (task-006)
-6. Introduce watchlist domain (backend + frontend)
+1. Fix AuthContext to use the correct apiClient methods and correct API paths
+2. Build sentiment trend chart input adapter (task-006)
+3. Build portfolio summary cards (task-007)
+4. Connect the portfolio detail page to the named apiClient methods
+5. Introduce watchlist domain (backend + frontend)

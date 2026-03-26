@@ -19,6 +19,26 @@ export interface HoldingSnapshot {
   allocation_percent: number;
 }
 
+export interface PortfolioAllocationSlice extends HoldingSnapshot {
+  total_cost: number;
+  current_price: number;
+  profit_loss: number;
+  profit_loss_percent: number;
+}
+
+export interface PortfolioGainLossMetrics {
+  asset_count: number;
+  profitable_positions: number;
+  losing_positions: number;
+  flat_positions: number;
+}
+
+export interface PortfolioSummaryResult {
+  summary: PortfolioSummary;
+  allocations: PortfolioAllocationSlice[];
+  metrics: PortfolioGainLossMetrics;
+}
+
 export interface WatchlistItem {
   symbol: string;
   display_name?: string;
