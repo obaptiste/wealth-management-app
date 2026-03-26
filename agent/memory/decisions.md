@@ -99,6 +99,21 @@ The dashboard page now focuses on request-state rendering, while future auth cha
 
 ---
 
+### [2026-03-26] Model sentiment history as chart-specific frontend points
+Context:
+Task-006 requires the app to stop passing raw `sentiment/history` payloads toward presentation code and instead provide a stable chart-oriented shape that tolerates incomplete upstream data.
+
+Decision:
+Add `frontend/src/services/sentiment-trend.ts` as a pure adapter that maps raw history entries into `SentimentChartPoint` values, and expose that adapted series through the dashboard loader.
+
+Reason:
+This keeps history normalization and score derivation in one place, avoids leaking backend response details into chart components, and gives future sentiment visualizations a single typed input contract.
+
+Impact:
+Any dashboard or watchlist chart can consume `SentimentChartPoint[]` directly. Invalid or partial history rows are filtered or normalized before they reach presentation code.
+
+---
+
 ## Decision log format
 Use this format for future entries:
 

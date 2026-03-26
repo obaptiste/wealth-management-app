@@ -84,7 +84,7 @@
     "title": "Build sentiment trend chart input adapter",
     "description": "Create an adapter that converts sentiment history into chart-friendly data structures.",
     "priority": "medium",
-    "status": "todo",
+    "status": "done",
     "dependsOn": [
       "task-003"
     ],
@@ -92,7 +92,8 @@
       "Chart data mapping is isolated",
       "Adapter handles empty or incomplete history safely",
       "Presentation components receive ready-to-render data"
-    ]
+    ],
+    "completedAt": "2026-03-26"
   },
   {
     "id": "task-007",

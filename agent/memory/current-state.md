@@ -118,11 +118,17 @@ Early build stage. Frontend pages are mostly static/mocked. Backend API is subst
 - `frontend/src/lib/api.ts` now exposes `getSentimentHistory()` and typed payloads for asset/pension updates.
 - Targeted ESLint for the changed dashboard/API files passes. Full frontend `tsc --noEmit` still fails in pre-existing files: `pension/page.tsx`, `portfolio/[id]/page.tsx`, and `AuthContext.tsx`.
 
+### 14. Sentiment history now has a dedicated chart adapter
+- Added `frontend/src/services/sentiment-trend.ts` as the canonical adapter from backend `sentiment/history` payloads to chart-ready frontend points.
+- The adapter normalizes dates, clamps sentiment percentages, computes a stable `score` in `[-1, 1]`, drops invalid dates, and returns an empty list for missing history.
+- `frontend/src/types/chart.ts` now defines `SentimentChartPoint` so chart consumers can rely on one typed shape.
+- `frontend/src/app/dashboard/data.ts` now exposes `sentiment_trend` alongside the summary sentiment signal, so presentation components can render charts without parsing raw API history.
+
 ---
 
 ## Likely priorities (updated)
 1. Fix AuthContext to use the correct apiClient methods and correct API paths
-2. Build sentiment trend chart input adapter (task-006)
-3. Build portfolio summary cards (task-007)
-4. Connect the portfolio detail page to the named apiClient methods
-5. Introduce watchlist domain (backend + frontend)
+2. Build portfolio summary cards (task-007)
+3. Connect the portfolio detail page to the named apiClient methods
+4. Introduce watchlist domain (backend + frontend)
+5. Establish historical snapshot plan (task-010)
