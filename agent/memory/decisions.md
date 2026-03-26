@@ -54,6 +54,21 @@ Future dashboard loaders/components should use `normalizeSentimentResult` / `nor
 
 ---
 
+### [2026-03-26] Keep agent workflow and verification commands in AGENTS.md
+Context:
+The repo already contains an agent scaffold in `agent/`, but the top-level `AGENTS.md` only described high-level coding principles and did not list the actual workflow or runnable commands.
+
+Decision:
+Document the required agent reading order, task-selection rules, memory update expectations, helper commands from `agent/agent-tools.sh`, and the main frontend/backend verification commands directly in `AGENTS.md`.
+
+Reason:
+The implementation workflow should be discoverable from the primary repo instructions. Keeping the command list in one obvious place reduces guesswork and makes task completion criteria more testable.
+
+Impact:
+Contributors should use `AGENTS.md` as the top-level workflow reference, then follow the detailed prompts and memory files under `agent/`. Task-009 can be treated as completed documentation work.
+
+---
+
 ## Decision log format
 Use this format for future entries:
 

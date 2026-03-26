@@ -3,7 +3,6 @@
 ## Immediate next steps
 - **task-004**: Create portfolio summary service — now the highest-priority unblocked task
 - **task-005**: Refactor dashboard data loading (still blocked by task-004)
-- **task-009**: Document verification commands (typecheck, lint, build)
 
 ## What is blocked
 - task-005 (dashboard data loading) — blocked on task-004

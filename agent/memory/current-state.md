@@ -100,6 +100,11 @@ Early build stage. Frontend pages are mostly static/mocked. Backend API is subst
 ### 10. `config.py` `is_production` is a method but used as a property
 - `settings.is_production` is defined as a method `def is_production(self) -> bool` but used as `settings.is_production` (without calling it) in `main.py` conditional expressions.
 
+### 11. Agent workflow and verification commands are now documented
+- `AGENTS.md` now includes the repo-specific agent workflow, required context files, task-update expectations, and concrete frontend/backend command references.
+- Agent helper commands are documented via `source agent/agent-tools.sh && ...`.
+- Verification guidance now points contributors to run the smallest relevant command set instead of relying on vague "run checks" language.
+
 ---
 
 ## Likely priorities (updated)

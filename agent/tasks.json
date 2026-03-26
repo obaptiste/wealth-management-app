@@ -129,7 +129,7 @@
     "title": "Add verification commands and documentation",
     "description": "Document the commands used to typecheck, lint, build, and test the app or relevant modules.",
     "priority": "medium",
-    "status": "todo",
+    "status": "done",
     "dependsOn": [
       "task-001"
     ],
@@ -137,7 +137,8 @@
       "Verification commands are documented",
       "Agent can report what checks should run after each task",
       "Known command failures are noted if they exist"
-    ]
+    ],
+    "completedAt": "2026-03-26"
   },
   {
     "id": "task-010",
