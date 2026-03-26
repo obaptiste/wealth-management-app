@@ -1,4 +1,4 @@
-import React, { FC, ReactNode } from "react";
+import React, { ReactNode } from "react";
 import type { Metadata } from "next";
 import { Syne, Work_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
@@ -42,7 +42,6 @@ export default function RootLayout({ children }: LayoutProps) {
     </html>
   );
 };
-
 
 
 

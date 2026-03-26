@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import type { CreateAssetData, UpdateAssetData } from '@/types/assets';
+import type { AuthResponse, User } from '@/types/api';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -49,13 +50,26 @@ class ApiClient {
   }
 
   // Auth endpoints
-  async register(email: string, password: string, name: string) {
-    const response = await this.client.post('/auth/register', { email, password, name });
+  async register(username: string, email: string, password: string) {
+    const response = await this.client.post('/auth/register', { username, email, password });
     return response.data;
   }
 
-  async login(email: string, password: string) {
-    const response = await this.client.post('/auth/login', { email, password });
+  async login(email: string, password: string): Promise<AuthResponse> {
+    const payload = new URLSearchParams();
+    payload.set('username', email);
+    payload.set('password', password);
+
+    const response = await this.client.post('/auth/token', payload, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+    return response.data;
+  }
+
+  async getCurrentUser(): Promise<User> {
+    const response = await this.client.get('/auth/me');
     return response.data;
   }
 

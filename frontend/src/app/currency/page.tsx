@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Box,
   Container,
@@ -15,10 +15,6 @@ import {
   CardBody,
   Grid,
   GridItem,
-  Stat,
-  StatLabel,
-  StatNumber,
-  StatHelpText,
   useColorModeValue,
   Icon,
   Flex,
@@ -63,29 +59,33 @@ export default function CurrencyConversionPage() {
 
   const cardBg = useColorModeValue('white', 'slate.800');
   const accentColor = useColorModeValue('brand.500', 'brand.400');
+  const resultBg = useColorModeValue('brand.50', 'brand.900');
 
-  useEffect(() => {
-    fetchSupportedCurrencies();
-    fetchExchangeRates();
-  }, []);
-
-  const fetchSupportedCurrencies = async () => {
+  const fetchSupportedCurrencies = useCallback(async () => {
     try {
       const response = await apiClient.getSupportedCurrencies();
       setSupportedCurrencies(response.currencies);
     } catch (error) {
       console.error('Error fetching supported currencies:', error);
     }
-  };
+  }, []);
 
-  const fetchExchangeRates = async () => {
+  const fetchExchangeRates = useCallback(async () => {
     try {
       const response = await apiClient.getExchangeRates(fromCurrency);
       setRates(response.rates);
     } catch (error) {
       console.error('Error fetching exchange rates:', error);
     }
-  };
+  }, [fromCurrency]);
+
+  useEffect(() => {
+    void fetchSupportedCurrencies();
+  }, [fetchSupportedCurrencies]);
+
+  useEffect(() => {
+    void fetchExchangeRates();
+  }, [fetchExchangeRates]);
 
   const handleConvert = async () => {
     if (!amount || parseFloat(amount) <= 0) return;
@@ -253,7 +253,7 @@ export default function CurrencyConversionPage() {
                         transition={{ duration: 0.4 }}
                         p={6}
                         borderRadius="xl"
-                        bg={useColorModeValue('brand.50', 'brand.900')}
+                        bg={resultBg}
                         borderWidth="2px"
                         borderColor={accentColor}
                       >

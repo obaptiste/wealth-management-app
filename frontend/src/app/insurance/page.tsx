@@ -34,7 +34,6 @@ import {
   TbUsers,
   TbTrendingUp,
   TbCoin,
-  TbCheckbox,
 } from 'react-icons/tb';
 import { apiClient } from '@/lib/api';
 
@@ -77,6 +76,8 @@ export default function InsurancePage() {
 
   const cardBg = useColorModeValue('white', 'slate.800');
   const accentColor = useColorModeValue('brand.500', 'brand.400');
+  const summaryBg = useColorModeValue('brand.50', 'brand.900');
+  const recommendationBg = useColorModeValue('slate.50', 'slate.700');
 
   const getRecommendations = async () => {
     setLoading(true);
@@ -251,7 +252,7 @@ export default function InsurancePage() {
                       animate={{ opacity: 1 }}
                       p={4}
                       borderRadius="xl"
-                      bg={useColorModeValue('brand.50', 'brand.900')}
+                      bg={summaryBg}
                     >
                       <VStack spacing={2} align="stretch">
                         <HStack justify="space-between">
@@ -358,7 +359,7 @@ export default function InsurancePage() {
                             <Box
                               p={4}
                               borderRadius="lg"
-                              bg={useColorModeValue('slate.50', 'slate.700')}
+                              bg={recommendationBg}
                             >
                               <Text fontSize="sm" color="text-secondary">
                                 {rec.reason}
