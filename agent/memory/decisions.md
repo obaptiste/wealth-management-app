@@ -114,6 +114,21 @@ Any dashboard or watchlist chart can consume `SentimentChartPoint[]` directly. I
 
 ---
 
+### [2026-03-26] Align frontend auth calls with the backend before expanding UI work
+Context:
+The clean-build pass exposed that `AuthContext.tsx` and the portfolio detail page still depended on nonexistent generic API client methods, while the backend auth flow actually uses `/auth/token` and `/auth/me`.
+
+Decision:
+Keep `lib/api.ts` as the single access layer and update it to expose backend-aligned named auth methods (`login()` using form data and `getCurrentUser()`), then update consumers to call those methods directly.
+
+Reason:
+This preserves the existing explicit-client pattern and removes a class of compile-time and runtime mismatches without reintroducing raw URL calls throughout the frontend.
+
+Impact:
+Auth-related consumers now compile cleanly, token storage stays centralized in the frontend auth flow, and future auth refactors have a clearer starting point.
+
+---
+
 ## Decision log format
 Use this format for future entries:
 

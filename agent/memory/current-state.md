@@ -124,11 +124,17 @@ Early build stage. Frontend pages are mostly static/mocked. Backend API is subst
 - `frontend/src/types/chart.ts` now defines `SentimentChartPoint` so chart consumers can rely on one typed shape.
 - `frontend/src/app/dashboard/data.ts` now exposes `sentiment_trend` alongside the summary sentiment signal, so presentation components can render charts without parsing raw API history.
 
+### 15. Frontend build verification is clean again
+- Fixed the remaining frontend TypeScript and ESLint blockers in auth, portfolio detail, pension, currency, insurance, layout, and the portfolio overview page.
+- `frontend/src/lib/api.ts` now matches the backend auth contract more closely by using `/auth/token` for login and exposing `getCurrentUser()`.
+- `frontend/src/contexts/AuthContext.tsx` now uses named `apiClient` methods instead of nonexistent generic `.get()` / `.post()` calls.
+- The `/portfolio` route is now explicitly client-rendered so the production build can safely include its chart/motion dependencies.
+- Verification now passes for `./node_modules/.bin/tsc --noEmit`, targeted ESLint, and `npm run build` in `frontend/`.
+
 ---
 
 ## Likely priorities (updated)
-1. Fix AuthContext to use the correct apiClient methods and correct API paths
-2. Build portfolio summary cards (task-007)
-3. Connect the portfolio detail page to the named apiClient methods
-4. Introduce watchlist domain (backend + frontend)
-5. Establish historical snapshot plan (task-010)
+1. Build portfolio summary cards (task-007)
+2. Introduce watchlist domain (backend + frontend)
+3. Establish historical snapshot plan (task-010)
+4. Review the frontend auth flow against the backend runtime contract beyond compile-time alignment
