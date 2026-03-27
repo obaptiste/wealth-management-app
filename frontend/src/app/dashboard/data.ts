@@ -1,7 +1,7 @@
 import apiClient from '@/lib/api';
 import { summarizePortfolio } from '@/services/portfolio-summary';
 import { normalizeSentimentResult } from '@/services/sentiment';
-import { mapSentimentTrendHistory } from '@/services/sentiment-trend';
+import { buildSentimentTrendPoints } from '@/services/sentiment-trend';
 import type { AssetWithPerformance } from '@/types/assets';
 import type { SentimentChartPoint } from '@/types/chart';
 import type {
@@ -97,7 +97,7 @@ async function loadSentimentTrend(symbol?: string): Promise<SentimentChartPoint[
 
   try {
     const history = await apiClient.getSentimentHistory(symbol, 7) as SentimentHistoryResponse;
-    return mapSentimentTrendHistory(history);
+    return buildSentimentTrendPoints(history);
   } catch (error) {
     console.warn(`Dashboard sentiment trend unavailable for ${symbol}`, error);
     return [];
