@@ -169,6 +169,36 @@ Future dashboard or watchlist charts can reuse the same adapted sentiment series
 
 ---
 
+### [2026-03-27] Construct primary sentiment result directly instead of routing through normalizeSentimentResult
+Context:
+`loadPrimarySentiment` in `dashboard/data.ts` computed a net score via `(positive - negative) / 100`, producing a value in `[-1, 1]`, then passed it to `normalizeSentimentResult`. That function internally calls `normalizeSentimentScore`, which treats any value in `[0, 1]` as a raw model probability and remaps it to `[-1, 1]` via `(score * 2) - 1`. This corrupted all non-negative net sentiment scores.
+
+Decision:
+Construct the `SentimentResult` object directly in `derivePrimarySentiment`, using a local `scoreToSentimentLabel` helper to map the score to a domain label. Do not call `normalizeSentimentResult` on scores that are already in `[-1, 1]` net sentiment format.
+
+Reason:
+`normalizeSentimentScore` is designed for raw model output probabilities. Net sentiment derived from percentage breakdowns is a different format and must not be re-processed. Constructing the result directly makes the assumption explicit and avoids coupling the loader to a function built for a different input contract.
+
+Impact:
+`normalizeSentimentResult` and `normalizeSentimentScore` remain correct for their intended use (raw model outputs in `sentiment.ts`). `dashboard/data.ts` now owns the label derivation for trend-based signals via `scoreToSentimentLabel`.
+
+---
+
+### [2026-03-27] Fetch sentiment history once per dashboard load
+Context:
+`loadPrimarySentiment` and `loadSentimentTrend` in `dashboard/data.ts` each independently called `apiClient.getSentimentHistory(symbol, 7)`, producing two identical HTTP requests per dashboard render.
+
+Decision:
+Add a single `loadSentimentHistory` function that fetches once and returns `RawSentimentHistory | null`. Both `derivePrimarySentiment` and `deriveSentimentTrend` accept the result and derive their outputs from the same payload.
+
+Reason:
+There is no reason to make two identical calls. Fetching once halves the network cost, keeps error handling in one place, and makes the data flow easier to trace.
+
+Impact:
+`loadDashboardData` now awaits `loadSentimentHistory` once before calling both derive functions. The `Promise.all` for the two sentiment fetches is removed.
+
+---
+
 ## Decision log format
 
 Use this format for future entries:

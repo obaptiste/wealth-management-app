@@ -130,7 +130,7 @@ export function DashboardSummaryCards({ data }: { data: DashboardData }) {
               : "Waiting for portfolio holdings"
           }
           accentColor={
-            data.summary.total_profit_loss >= 0 ? "green.500" : "gray.500"
+            data.summary.total_profit_loss >= 0 ? "green.500" : "red.500"
           }
         />
 
