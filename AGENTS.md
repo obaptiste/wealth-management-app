@@ -53,13 +53,16 @@ This project is a wealth management app focused on portfolio visibility, sentime
 
 ### Agent helper commands
 - `source agent/agent-tools.sh && agent-check`
+- `source agent/agent-tools.sh && agent-context`
 - `source agent/agent-tools.sh && agent-status`
 - `source agent/agent-tools.sh && agent-next`
+- `source agent/agent-tools.sh && agent-blocked`
 - `source agent/agent-tools.sh && agent-start`
 - `source agent/agent-tools.sh && agent-review`
 - `source agent/agent-tools.sh && agent-plan`
 - `source agent/agent-tools.sh && agent-log`
 - `source agent/agent-tools.sh && agent-done task-<id>`
+- `source agent/agent-tools.sh && agent-in-progress task-<id>`
 
 ### Frontend commands
 - `cd frontend && npm run dev`
