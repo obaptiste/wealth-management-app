@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import func
+from sqlalchemy.orm import selectinload
 from datetime import datetime, timedelta, timezone
 import yfinance as yf
 from functools import lru_cache
@@ -203,6 +204,13 @@ async def create_portfolio(
         db.add(new_portfolio)
         await db.commit()
         await db.refresh(new_portfolio)
+        # Eagerly reload with assets so Pydantic serialisation works in async context
+        result = await db.execute(
+            select(Portfolio)
+            .options(selectinload(Portfolio.assets))
+            .where(Portfolio.id == new_portfolio.id)
+        )
+        new_portfolio = result.scalars().first()
         logger.info(f"Portfolio created: {new_portfolio.name}")
         return new_portfolio
     except Exception as e:
@@ -224,6 +232,7 @@ async def get_portfolios(
     try:
         result = await db.execute(
             select(Portfolio)
+            .options(selectinload(Portfolio.assets))
             .where(Portfolio.owner_id == current_user.id)
             .offset(skip)
             .limit(limit)
@@ -245,9 +254,10 @@ async def get_portfolio(
 ):
     """Get a specific portfolio by ID with performance summary."""
     try:
-        # Get portfolio
+        # Get portfolio (eagerly load assets to avoid async lazy-load errors)
         result = await db.execute(
             select(Portfolio)
+            .options(selectinload(Portfolio.assets))
             .where(Portfolio.id == portfolio_id)
             .where(Portfolio.owner_id == current_user.id)
         )
@@ -394,6 +404,13 @@ async def update_portfolio(
         try:
             await db.commit()
             await db.refresh(portfolio)
+            # Eagerly reload with assets so Pydantic serialisation works in async context
+            result = await db.execute(
+                select(Portfolio)
+                .options(selectinload(Portfolio.assets))
+                .where(Portfolio.id == portfolio.id)
+            )
+            portfolio = result.scalars().first()
             logger.info(f"Portfolio updated: {portfolio.name}")
             return portfolio
         except Exception as e:
