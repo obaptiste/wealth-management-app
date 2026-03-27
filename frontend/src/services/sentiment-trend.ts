@@ -1,31 +1,37 @@
 import type { SentimentChartPoint } from '@/types/chart';
 
-export interface RawSentimentTrendInput {
+export interface RawSentimentTrendPoint {
   date?: string | null;
   positive?: number | null;
-  neutral?: number | null;
   negative?: number | null;
+  neutral?: number | null;
   total_analyzed?: number | null;
 }
 
-export interface SentimentTrendHistoryInput {
-  sentiment_trends?: RawSentimentTrendInput[] | null;
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
+export interface RawSentimentHistory {
+  symbol?: string | null;
+  days_analyzed?: number | null;
+  sentiment_trends?: RawSentimentTrendPoint[] | null;
 }
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
 }
 
-function normalizePercent(value?: number | null): number {
+function clampPercentage(value: unknown): number {
   if (!isFiniteNumber(value)) {
     return 0;
   }
 
-  return clamp(value, 0, 100);
+  return Math.min(Math.max(value, 0), 100);
+}
+
+function normalizeTotalAnalyzed(value: unknown): number {
+  if (!isFiniteNumber(value)) {
+    return 0;
+  }
+
+  return value > 0 ? Math.round(value) : 0;
 }
 
 function normalizeDate(value?: string | null): string | null {
@@ -42,40 +48,33 @@ function normalizeDate(value?: string | null): string | null {
 }
 
 function toSentimentScore(positive: number, negative: number): number {
-  return clamp((positive - negative) / 100, -1, 1);
+  return (positive - negative) / 100;
 }
 
-export function mapSentimentTrendPoint(input: RawSentimentTrendInput): SentimentChartPoint | null {
-  const date = normalizeDate(input.date);
+export function buildSentimentTrendPoints(history: RawSentimentHistory): SentimentChartPoint[] {
+  const rawPoints = history.sentiment_trends ?? [];
 
-  if (!date) {
-    return null;
-  }
+  return rawPoints
+    .map((point) => {
+      const date = normalizeDate(point.date);
 
-  const positive = normalizePercent(input.positive);
-  const neutral = normalizePercent(input.neutral);
-  const negative = normalizePercent(input.negative);
-  const totalAnalyzed = isFiniteNumber(input.total_analyzed)
-    ? Math.max(input.total_analyzed, 0)
-    : 0;
+      if (!date) {
+        return null;
+      }
 
-  return {
-    date,
-    score: toSentimentScore(positive, negative),
-    positive,
-    neutral,
-    negative,
-    total_analyzed: totalAnalyzed,
-  };
-}
+      const positive = clampPercentage(point.positive);
+      const negative = clampPercentage(point.negative);
+      const neutral = clampPercentage(point.neutral);
 
-export function mapSentimentTrendHistory(input: SentimentTrendHistoryInput): SentimentChartPoint[] {
-  const trends = input.sentiment_trends ?? [];
-  const mapped = trends
-    .map((trend) => mapSentimentTrendPoint(trend))
-    .filter((trend): trend is SentimentChartPoint => trend !== null);
-
-  mapped.sort((left, right) => left.date.localeCompare(right.date));
-
-  return mapped;
+      return {
+        date,
+        score: toSentimentScore(positive, negative),
+        positive,
+        neutral,
+        negative,
+        total_analyzed: normalizeTotalAnalyzed(point.total_analyzed),
+      };
+    })
+    .filter((point): point is SentimentChartPoint => point !== null)
+    .sort((left, right) => left.date.localeCompare(right.date));
 }
