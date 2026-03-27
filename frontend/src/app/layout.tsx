@@ -33,9 +33,10 @@ const jetBrainsMonoFont = JetBrains_Mono({
 
 export default function RootLayout({ children }: LayoutProps) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
     <body
     className={`${syneFont.variable} ${workSansFont.variable} ${jetBrainsMonoFont.variable} antialiased`}
+    suppressHydrationWarning
   >
     <Providers>{children}</Providers>
     </body>
