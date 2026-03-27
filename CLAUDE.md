@@ -8,7 +8,7 @@ This project is a wealth management app focused on portfolio visibility, sentime
 - TypeScript
 - React
 - PostgreSQL
-- Prisma
+- SQLAlchemy + Alembic (backend ORM and migrations)
 
 ## Working principles
 - Prefer small, safe, incremental changes

@@ -143,6 +143,30 @@ Early build stage. Frontend pages are mostly static/mocked. Backend API is subst
 - Added `frontend/src/components/dashboard/SentimentTrendChart.tsx` to render the adapted trend data with chart-specific empty and loading states.
 - Verification passes for targeted ESLint, `./node_modules/.bin/tsc --noEmit`, and `npm run build` in `frontend/`.
 
+### 18. Review fixes applied (2026-03-27)
+
+A reviewer pass on task-006/task-007 identified four bugs. All are now fixed:
+
+**Bug 1 — broken import (build-breaking)**
+- `frontend/src/app/dashboard/data.ts` imported `mapSentimentTrendHistory` from `@/services/sentiment-trend`, but the exported name is `buildSentimentTrendPoints`. Fixed: import updated to `buildSentimentTrendPoints`.
+
+**Bug 2 — sentiment score double-processing (data corruption)**
+- `loadPrimarySentiment` computed a net score in `[-1, 1]` via `toSentimentScore`, then passed it through `normalizeSentimentResult` → `normalizeSentimentScore`. That function treats any value in `[0, 1]` as a raw model probability and re-maps it: e.g. `0.4` became `-0.2`. Only negative scores passed through correctly.
+- Fixed: replaced `normalizeSentimentResult` usage with a direct `SentimentResult` construction. A local `scoreToSentimentLabel` maps the already-normalized score to the domain label. The `normalizeSentimentScore` function is not called on trend-derived scores.
+
+**Bug 3 — duplicate API calls (efficiency)**
+- `loadPrimarySentiment` and `loadSentimentTrend` both independently called `apiClient.getSentimentHistory(symbol, 7)`, producing two identical requests per dashboard load.
+- Fixed: a single `loadSentimentHistory` fetch is performed in `loadDashboardData`; `derivePrimarySentiment` and `deriveSentimentTrend` both consume the same result.
+
+**Bug 4 — loss accent color invisible (UI)**
+- `DashboardSummaryCards.tsx` rendered negative `total_profit_loss` in `gray.500`, indistinguishable from neutral text.
+- Fixed: changed to `red.500`.
+
+**CLAUDE.md correction**
+- `CLAUDE.md` listed Prisma as the ORM; the actual backend uses SQLAlchemy + Alembic. Corrected.
+
+- Verification: `tsc --noEmit --skipLibCheck` filtered to `src/app/dashboard/data.ts` reports zero errors after fixes. All other tsc errors across the project are pre-existing "cannot find module" failures caused by `frontend/node_modules` not being installed in this environment. Full `npm install && npm run build` in `frontend/` is required to confirm a clean build in a real environment.
+
 ---
 
 ## Likely priorities (updated)
