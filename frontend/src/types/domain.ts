@@ -1,7 +1,12 @@
-import type { AssetWithPerformance } from './assets';
-import type { PortfolioSummary } from './portfolios';
+import type { AssetWithPerformance } from "./assets";
+import type { PortfolioSummary } from "./portfolios";
 
-export type SentimentLabel = 'very_bearish' | 'bearish' | 'neutral' | 'bullish' | 'very_bullish';
+export type SentimentLabel =
+  | "very_bearish"
+  | "bearish"
+  | "neutral"
+  | "bullish"
+  | "very_bullish";
 
 export interface SentimentResult {
   symbol: string;

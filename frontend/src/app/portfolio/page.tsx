@@ -1,15 +1,33 @@
-'use client';
+"use client";
 
-import { Box, Heading, Text, SimpleGrid, Button, Progress, VStack, Card as ChakraCard, CardHeader, CardBody } from "@chakra-ui/react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  Box,
+  Heading,
+  Text,
+  SimpleGrid,
+  Button,
+  Progress,
+  VStack,
+  Card as ChakraCard,
+  CardHeader,
+  CardBody,
+} from "@chakra-ui/react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { MotionDiv } from "@/components/motion-div";
 
 const mockData = [
-  { name: 'Jan', value: 4000 },
-  { name: 'Feb', value: 4300 },
-  { name: 'Mar', value: 4600 },
-  { name: 'Apr', value: 4800 },
-  { name: 'May', value: 5000 },
+  { name: "Jan", value: 4000 },
+  { name: "Feb", value: 4300 },
+  { name: "Mar", value: 4600 },
+  { name: "Apr", value: 4800 },
+  { name: "May", value: 5000 },
 ];
 
 export default function PortfolioPage() {
@@ -24,8 +42,12 @@ export default function PortfolioPage() {
               <Heading size="md">Portfolio Value</Heading>
             </CardHeader>
             <CardBody>
-              <Text fontSize="2xl" fontWeight="bold">$5,000</Text>
-              <Text fontSize="sm" color="gray.500" mt={2}>+5% this month</Text>
+              <Text fontSize="2xl" fontWeight="bold">
+                $5,000
+              </Text>
+              <Text fontSize="sm" color="gray.500" mt={2}>
+                +5% this month
+              </Text>
             </CardBody>
           </ChakraCard>
 
@@ -34,8 +56,12 @@ export default function PortfolioPage() {
               <Heading size="md">Cash Available</Heading>
             </CardHeader>
             <CardBody>
-              <Text fontSize="2xl" fontWeight="bold">$1,200</Text>
-              <Button mt={4} width="full" colorScheme="blue">Add Funds</Button>
+              <Text fontSize="2xl" fontWeight="bold">
+                $1,200
+              </Text>
+              <Button mt={4} width="full" colorScheme="blue">
+                Add Funds
+              </Button>
             </CardBody>
           </ChakraCard>
         </SimpleGrid>
@@ -51,7 +77,12 @@ export default function PortfolioPage() {
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
-                  <Line type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={2} />
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#8884d8"
+                    strokeWidth={2}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </Box>
@@ -64,7 +95,9 @@ export default function PortfolioPage() {
               <Heading size="sm">Stocks</Heading>
             </CardHeader>
             <CardBody>
-              <Text fontSize="lg" fontWeight="bold">$3,000</Text>
+              <Text fontSize="lg" fontWeight="bold">
+                $3,000
+              </Text>
               <Progress value={60} mt={2} colorScheme="green" />
             </CardBody>
           </ChakraCard>
@@ -73,7 +106,9 @@ export default function PortfolioPage() {
               <Heading size="sm">Crypto</Heading>
             </CardHeader>
             <CardBody>
-              <Text fontSize="lg" fontWeight="bold">$1,500</Text>
+              <Text fontSize="lg" fontWeight="bold">
+                $1,500
+              </Text>
               <Progress value={30} mt={2} colorScheme="purple" />
             </CardBody>
           </ChakraCard>
@@ -82,7 +117,9 @@ export default function PortfolioPage() {
               <Heading size="sm">Cash</Heading>
             </CardHeader>
             <CardBody>
-              <Text fontSize="lg" fontWeight="bold">$500</Text>
+              <Text fontSize="lg" fontWeight="bold">
+                $500
+              </Text>
               <Progress value={10} mt={2} colorScheme="blue" />
             </CardBody>
           </ChakraCard>

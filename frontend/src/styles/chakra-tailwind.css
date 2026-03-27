@@ -10,12 +10,12 @@
 
 /* Dark mode styles that apply to both systems */
 .dark {
-  --chakra-colors-gray-50: #0D1117;
-  --chakra-colors-gray-100: #1A202C;
-  --chakra-colors-gray-200: #2D3748;
-  --chakra-colors-gray-700: #CBD5E0;
-  --chakra-colors-gray-800: #E2E8F0;
-  --chakra-colors-gray-900: #F7FAFC;
+  --chakra-colors-gray-50: #0d1117;
+  --chakra-colors-gray-100: #1a202c;
+  --chakra-colors-gray-200: #2d3748;
+  --chakra-colors-gray-700: #cbd5e0;
+  --chakra-colors-gray-800: #e2e8f0;
+  --chakra-colors-gray-900: #f7fafc;
 
   color-scheme: dark;
 }
@@ -35,7 +35,8 @@
 }
 
 /* Ensure fonts work in both systems */
-.chakra-text, .chakra-heading {
+.chakra-text,
+.chakra-heading {
   font-family: var(--font-geist-sans);
 }
 

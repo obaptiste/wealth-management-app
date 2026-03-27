@@ -1,20 +1,20 @@
 // src/components/Providers.tsx (Simplified)
 
-'use client';
+"use client";
 
-import React, { useEffect } from 'react';
-import { NextUIProvider } from '@nextui-org/react';
-import { ThemeProvider as NextThemeProvider } from 'next-themes';
-import { ChakraProvider } from '@chakra-ui/react';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { ErrorBoundary } from 'react-error-boundary';
-import { ColorModeScript } from '@chakra-ui/color-mode';
-import { ErrorFallbackProps } from '@/types/components'; // Adjust the import path as necessary
-import { theme } from '@/styles/theme'; // Ensure this path is correct
+import React, { useEffect } from "react";
+import { NextUIProvider } from "@nextui-org/react";
+import { ThemeProvider as NextThemeProvider } from "next-themes";
+import { ChakraProvider } from "@chakra-ui/react";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ErrorBoundary } from "react-error-boundary";
+import { ColorModeScript } from "@chakra-ui/color-mode";
+import { ErrorFallbackProps } from "@/types/components"; // Adjust the import path as necessary
+import { theme } from "@/styles/theme"; // Ensure this path is correct
 
 function ErrorFallback({ error }: ErrorFallbackProps) {
   return (
-    <div className='p-4 bg-red-50 text-red-700 rounded'>
+    <div className="p-4 bg-red-50 text-red-700 rounded">
       <h2 className="text-lg font-semibold">Something went wrong:</h2>
       <p>{error.message}</p>
     </div>
@@ -27,11 +27,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Apply theme attributes to document element
-    const savedTheme = typeof window !== 'undefined' ? 
-      localStorage.getItem('theme') || 'light' : 'light';
-    
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    document.documentElement.className = savedTheme === 'dark' ? 'dark' : '';
+    const savedTheme =
+      typeof window !== "undefined"
+        ? localStorage.getItem("theme") || "light"
+        : "light";
+
+    document.documentElement.setAttribute("data-theme", savedTheme);
+    document.documentElement.className = savedTheme === "dark" ? "dark" : "";
     document.documentElement.style.colorScheme = savedTheme;
   }, []);
 
@@ -51,7 +53,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ColorModeScript initialColorMode={theme.config.initialColorMode} />
       {/* next-themes manages the class on <html> */}
       <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <NextThemeProvider attribute={'class'} defaultTheme="system" enableSystem={true}>
+        <NextThemeProvider
+          attribute={"class"}
+          defaultTheme="system"
+          enableSystem={true}
+        >
           <NextUIProvider>
             {/* In Chakra UI v3.16, you typically pass theme directly */}
             <ChakraProvider theme={theme}>
@@ -63,4 +69,3 @@ export function Providers({ children }: { children: React.ReactNode }) {
     </>
   );
 }
-

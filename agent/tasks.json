@@ -19,9 +19,7 @@
     "description": "Create or consolidate TypeScript types for holdings, watchlist items, sentiment results, portfolio summaries, and historical snapshots.",
     "priority": "high",
     "status": "done",
-    "dependsOn": [
-      "task-001"
-    ],
+    "dependsOn": ["task-001"],
     "acceptanceCriteria": [
       "Shared types exist in a clear location",
       "Major domain objects have explicit types",
@@ -35,9 +33,7 @@
     "description": "Implement a service that accepts raw sentiment inputs and returns normalized sentiment data for the rest of the app.",
     "priority": "high",
     "status": "done",
-    "dependsOn": [
-      "task-002"
-    ],
+    "dependsOn": ["task-002"],
     "acceptanceCriteria": [
       "Service file exists",
       "Normalization rules are explicit",
@@ -52,9 +48,7 @@
     "description": "Implement a service that calculates total value, allocation summaries, and simple gain/loss metrics from portfolio data.",
     "priority": "high",
     "status": "done",
-    "dependsOn": [
-      "task-002"
-    ],
+    "dependsOn": ["task-002"],
     "acceptanceCriteria": [
       "Summary calculations are isolated from UI",
       "Output types are predictable",
@@ -68,10 +62,7 @@
     "description": "Move dashboard-level data orchestration into a dedicated loader or server-side composition layer.",
     "priority": "high",
     "status": "done",
-    "dependsOn": [
-      "task-003",
-      "task-004"
-    ],
+    "dependsOn": ["task-003", "task-004"],
     "acceptanceCriteria": [
       "Dashboard page no longer contains scattered business logic",
       "Loader composes sentiment and portfolio data cleanly",
@@ -85,9 +76,7 @@
     "description": "Create an adapter that converts sentiment history into chart-friendly data structures.",
     "priority": "medium",
     "status": "done",
-    "dependsOn": [
-      "task-003"
-    ],
+    "dependsOn": ["task-003"],
     "acceptanceCriteria": [
       "Chart data mapping is isolated",
       "Adapter handles empty or incomplete history safely",
@@ -101,10 +90,7 @@
     "description": "Create UI cards for total portfolio value, allocation highlights, and top-level movement metrics.",
     "priority": "medium",
     "status": "done",
-    "dependsOn": [
-      "task-004",
-      "task-005"
-    ],
+    "dependsOn": ["task-004", "task-005"],
     "acceptanceCriteria": [
       "Cards render from typed summary data",
       "No calculation logic is embedded in card components",
@@ -118,10 +104,7 @@
     "description": "Create a panel that shows selected watchlist assets with sentiment or catalyst-related indicators.",
     "priority": "medium",
     "status": "todo",
-    "dependsOn": [
-      "task-003",
-      "task-005"
-    ],
+    "dependsOn": ["task-003", "task-005"],
     "acceptanceCriteria": [
       "Watchlist panel uses normalized data",
       "Signal logic is not hardcoded into presentation components",
@@ -135,9 +118,7 @@
     "description": "Document the commands used to typecheck, lint, build, and test the app or relevant modules.",
     "priority": "medium",
     "status": "done",
-    "dependsOn": [
-      "task-001"
-    ],
+    "dependsOn": ["task-001"],
     "acceptanceCriteria": [
       "Verification commands are documented",
       "Agent can report what checks should run after each task",
@@ -151,10 +132,7 @@
     "description": "Define how the app should store or simulate historical portfolio and sentiment snapshots for charting and comparisons.",
     "priority": "medium",
     "status": "todo",
-    "dependsOn": [
-      "task-003",
-      "task-004"
-    ],
+    "dependsOn": ["task-003", "task-004"],
     "acceptanceCriteria": [
       "Snapshot model is described",
       "Storage direction is documented",

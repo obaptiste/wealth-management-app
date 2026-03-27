@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -9,25 +9,25 @@ import {
   Heading,
   Stack,
   Text,
-} from '@chakra-ui/react';
-import { loadDashboardData, type DashboardData } from '@/app/dashboard/data';
+} from "@chakra-ui/react";
+import { loadDashboardData, type DashboardData } from "@/app/dashboard/data";
 import {
   DashboardSummaryCards,
   DashboardSummaryCardsSkeleton,
-} from '@/components/dashboard/DashboardSummaryCards';
+} from "@/components/dashboard/DashboardSummaryCards";
 import {
   SentimentTrendChart,
   SentimentTrendChartSkeleton,
-} from '@/components/dashboard/SentimentTrendChart';
-import { ThemeToggle } from '@/components/ThemeToggle';
+} from "@/components/dashboard/SentimentTrendChart";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 type DashboardLoadState =
-  | { status: 'loading' }
-  | { status: 'error'; message: string }
-  | { status: 'success'; data: DashboardData };
+  | { status: "loading" }
+  | { status: "error"; message: string }
+  | { status: "success"; data: DashboardData };
 
 export default function Dashboard() {
-  const [state, setState] = useState<DashboardLoadState>({ status: 'loading' });
+  const [state, setState] = useState<DashboardLoadState>({ status: "loading" });
 
   useEffect(() => {
     let active = true;
@@ -40,17 +40,18 @@ export default function Dashboard() {
           return;
         }
 
-        setState({ status: 'success', data });
+        setState({ status: "success", data });
       } catch (error) {
         if (!active) {
           return;
         }
 
-        const message = error instanceof Error
-          ? error.message
-          : 'Dashboard data could not be loaded.';
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Dashboard data could not be loaded.";
 
-        setState({ status: 'error', message });
+        setState({ status: "error", message });
       }
     }
 
@@ -62,7 +63,7 @@ export default function Dashboard() {
   }, []);
 
   const content = (() => {
-    if (state.status === 'loading') {
+    if (state.status === "loading") {
       return (
         <Stack gap={8}>
           <DashboardSummaryCardsSkeleton />
@@ -71,13 +72,14 @@ export default function Dashboard() {
       );
     }
 
-    if (state.status === 'error') {
+    if (state.status === "error") {
       return (
         <Stack gap={4}>
           <Heading size="md">Dashboard unavailable</Heading>
           <Text color="red.500">{state.message}</Text>
           <Text color="gray.500">
-            This usually means the API is offline, authentication is missing, or portfolio data has not been created yet.
+            This usually means the API is offline, authentication is missing, or
+            portfolio data has not been created yet.
           </Text>
         </Stack>
       );
@@ -98,11 +100,16 @@ export default function Dashboard() {
       overflow="hidden"
       boxShadow="md"
       bg="white"
-      _dark={{ bg: 'gray.800' }}
+      _dark={{ bg: "gray.800" }}
     >
       <Box minH="100vh" w="full">
         <Box as="header" py={4} px={6} borderBottomWidth="1px">
-          <Flex justify="space-between" align="center" maxW="container.xl" mx="auto">
+          <Flex
+            justify="space-between"
+            align="center"
+            maxW="container.xl"
+            mx="auto"
+          >
             <Heading size="lg">OpenBank Wealth Management</Heading>
             <ThemeToggle />
           </Flex>
@@ -112,9 +119,13 @@ export default function Dashboard() {
           <Heading mb={6}>Dashboard</Heading>
           {content}
 
-          <Flex gap={6} flexDirection={{ base: 'column', md: 'row' }} mt={8}>
-            <Button colorScheme="primary" size="lg">Add Asset</Button>
-            <Button colorScheme="secondary" size="lg">View Reports</Button>
+          <Flex gap={6} flexDirection={{ base: "column", md: "row" }} mt={8}>
+            <Button colorScheme="primary" size="lg">
+              Add Asset
+            </Button>
+            <Button colorScheme="secondary" size="lg">
+              View Reports
+            </Button>
           </Flex>
         </Container>
       </Box>

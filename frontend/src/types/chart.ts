@@ -1,4 +1,4 @@
-import { AssetWithPerformance } from './assets';
+import { AssetWithPerformance } from "./assets";
 
 export interface DataPoint {
   date: string;

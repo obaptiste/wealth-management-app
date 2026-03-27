@@ -1,12 +1,12 @@
 // types/api.ts
 export interface User {
-    id: number;
-    username: string;
-    email: string;
-    is_active: boolean;
-    is_superuser: boolean;
-    created_at: string;
-    updated_at: string;
+  id: number;
+  username: string;
+  email: string;
+  is_active: boolean;
+  is_superuser: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ApiResponse<T> {
@@ -27,14 +27,14 @@ export interface PaginatedResponse<T> {
 
 /**
  * ApiClientResponse<T> is used in the following scenarios:
- * 
+ *
  * 1. When defining API client function return types:
  *    - API functions should return Promise<ApiClientResponse<T>>
- * 
+ *
  * 2. When consuming API responses:
  *    - Helps with type safety when destructuring the data property
  *    - Example: const { data } = await apiClient.get<User>('/auth/me');
- * 
+ *
  * 3. When implementing mock API responses for testing:
  *    - Ensures test data matches the expected API response format
  */
@@ -51,8 +51,15 @@ export interface ApiClientOptions {
 }
 
 export interface ApiClient {
-  get<T>(url: string, options?: ApiClientOptions): Promise<ApiClientResponse<T>>;
-  post<T, D = unknown>(url: string, data: D, options?: ApiClientOptions): Promise<ApiClientResponse<T>>;
+  get<T>(
+    url: string,
+    options?: ApiClientOptions,
+  ): Promise<ApiClientResponse<T>>;
+  post<T, D = unknown>(
+    url: string,
+    data: D,
+    options?: ApiClientOptions,
+  ): Promise<ApiClientResponse<T>>;
 }
 
 /**
@@ -69,4 +76,3 @@ export interface AuthResponse {
 export interface UserResponse {
   user: User;
 }
-

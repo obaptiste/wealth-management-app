@@ -1,5 +1,5 @@
 // frontend/src/types/auth.ts
-import { User } from './api';
+import { User } from "./api";
 
 export interface AuthContextType {
   user: User | null;
@@ -7,7 +7,11 @@ export interface AuthContextType {
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  register: (username: string, email: string, password: string) => Promise<void>;
+  register: (
+    username: string,
+    email: string,
+    password: string,
+  ) => Promise<void>;
 }
 
 export interface ApiError {

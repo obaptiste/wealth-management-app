@@ -1,6 +1,7 @@
 # Decisions
 
 ## Initial decisions
+
 - The project will use a task-driven agent workflow
 - The agent should complete one task at a time
 - The agent must update memory after each meaningful task
@@ -11,6 +12,7 @@
 ## Decision log
 
 ### [2026-03-20] Treat lib/api.ts as the canonical data-access layer
+
 Context:
 AuthContext.tsx calls `apiClient.get()` and `apiClient.post()` which are not exposed by the `ApiClient` class. There is also a separate `ApiClient` interface in `types/api.ts` that defines these methods but is not implemented.
 
@@ -26,6 +28,7 @@ Impact:
 ---
 
 ### [2026-03-20] Use portfolios.ts as canonical portfolio type file; delete portfolio.ts
+
 Context:
 Both `types/portfolio.ts` and `types/portfolios.ts` define nearly identical Portfolio interfaces. Both are re-exported from the barrel `types/index.ts`, causing potential name collisions.
 
@@ -38,8 +41,8 @@ Single source of truth prevents drift. The `last_updated` nullability difference
 Impact:
 Any consumer must import portfolio types from `types/portfolios.ts` (or the main type barrel). Shared watchlist/sentiment/snapshot contracts now live in `types/domain.ts`.
 
-
 ### [2026-03-22] Add a dedicated sentiment normalization service module
+
 Context:
 Task-003 requires sentiment normalization rules to be explicit and reusable so that presentation components do not transform raw payloads directly.
 
@@ -55,6 +58,7 @@ Future dashboard loaders/components should use `normalizeSentimentResult` / `nor
 ---
 
 ### [2026-03-26] Keep agent workflow and verification commands in AGENTS.md
+
 Context:
 The repo already contains an agent scaffold in `agent/`, but the top-level `AGENTS.md` only described high-level coding principles and did not list the actual workflow or runnable commands.
 
@@ -70,6 +74,7 @@ Contributors should use `AGENTS.md` as the top-level workflow reference, then fo
 ---
 
 ### [2026-03-26] Model portfolio summaries as a dedicated frontend service
+
 Context:
 Task-004 requires summary calculations to live outside UI components, and the current frontend pages still use hardcoded values instead of a reusable calculation layer.
 
@@ -85,6 +90,7 @@ Future dashboard loaders and portfolio cards should call `summarizePortfolio()` 
 ---
 
 ### [2026-03-26] Keep dashboard data orchestration in a dedicated route loader until auth is server-safe
+
 Context:
 Task-005 requires dashboard composition to move out of the page, but the current frontend auth/data client still depends on browser-only token storage and redirect behavior.
 
@@ -100,6 +106,7 @@ The dashboard page now focuses on request-state rendering, while future auth cha
 ---
 
 ### [2026-03-26] Model sentiment history as chart-specific frontend points
+
 Context:
 Task-006 requires the app to stop passing raw `sentiment/history` payloads toward presentation code and instead provide a stable chart-oriented shape that tolerates incomplete upstream data.
 
@@ -115,6 +122,7 @@ Any dashboard or watchlist chart can consume `SentimentChartPoint[]` directly. I
 ---
 
 ### [2026-03-26] Align frontend auth calls with the backend before expanding UI work
+
 Context:
 The clean-build pass exposed that `AuthContext.tsx` and the portfolio detail page still depended on nonexistent generic API client methods, while the backend auth flow actually uses `/auth/token` and `/auth/me`.
 
@@ -130,6 +138,7 @@ Auth-related consumers now compile cleanly, token storage stays centralized in t
 ---
 
 ### [2026-03-26] Render dashboard summary state through reusable card components
+
 Context:
 Task-007 requires the dashboard summary UI to be reusable and typed, while the current dashboard page still contained card markup and text shaping inline.
 
@@ -145,6 +154,7 @@ Future dashboard or portfolio views can reuse the same summary card component sh
 ---
 
 ### [2026-03-26] Keep sentiment chart transformation separate from chart rendering
+
 Context:
 The dashboard needed a sentiment trend chart, but the backend `sentiment/history` payload is not a presentation-ready chart format.
 
@@ -160,9 +170,11 @@ Future dashboard or watchlist charts can reuse the same adapted sentiment series
 ---
 
 ## Decision log format
+
 Use this format for future entries:
 
 ### [YYYY-MM-DD] Decision title
+
 Context:
 What problem or question led to this decision?
 

@@ -1,4 +1,4 @@
-import { AssetWithPerformance } from './assets';
+import { AssetWithPerformance } from "./assets";
 
 /**
  * Canonical portfolio domain types.

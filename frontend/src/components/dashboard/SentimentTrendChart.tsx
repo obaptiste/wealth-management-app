@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   Box,
@@ -11,7 +11,7 @@ import {
   Stack,
   Text,
   useColorModeValue,
-} from '@chakra-ui/react';
+} from "@chakra-ui/react";
 import {
   Area,
   AreaChart,
@@ -21,8 +21,8 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from 'recharts';
-import type { SentimentChartPoint } from '@/types/chart';
+} from "recharts";
+import type { SentimentChartPoint } from "@/types/chart";
 
 interface SentimentTrendChartProps {
   data: SentimentChartPoint[];
@@ -30,14 +30,14 @@ interface SentimentTrendChartProps {
 
 function formatScore(score: number): string {
   const percent = Math.round(score * 100);
-  const prefix = percent > 0 ? '+' : '';
+  const prefix = percent > 0 ? "+" : "";
   return `${prefix}${percent}%`;
 }
 
 function formatLabel(date: string): string {
-  return new Intl.DateTimeFormat('en-GB', {
-    day: 'numeric',
-    month: 'short',
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short",
   }).format(new Date(`${date}T00:00:00Z`));
 }
 
@@ -56,12 +56,15 @@ export function SentimentTrendChartSkeleton() {
 }
 
 export function SentimentTrendChart({ data }: SentimentTrendChartProps) {
-  const cardBg = useColorModeValue('white', 'gray.800');
-  const chartGrid = useColorModeValue('rgba(15, 23, 42, 0.08)', 'rgba(226, 232, 240, 0.12)');
-  const axisColor = useColorModeValue('#475569', '#CBD5E1');
-  const tooltipBg = useColorModeValue('#FFFFFF', '#0F172A');
-  const tooltipBorder = useColorModeValue('#CBD5E1', '#334155');
-  const emptyBg = useColorModeValue('gray.50', 'gray.700');
+  const cardBg = useColorModeValue("white", "gray.800");
+  const chartGrid = useColorModeValue(
+    "rgba(15, 23, 42, 0.08)",
+    "rgba(226, 232, 240, 0.12)",
+  );
+  const axisColor = useColorModeValue("#475569", "#CBD5E1");
+  const tooltipBg = useColorModeValue("#FFFFFF", "#0F172A");
+  const tooltipBorder = useColorModeValue("#CBD5E1", "#334155");
+  const emptyBg = useColorModeValue("gray.50", "gray.700");
 
   if (data.length === 0) {
     return (
@@ -74,7 +77,8 @@ export function SentimentTrendChart({ data }: SentimentTrendChartProps) {
             <Stack gap={3}>
               <Text fontWeight="semibold">No sentiment history yet</Text>
               <Text color="gray.500">
-                Stored sentiment results for the lead holding will appear here once data has been analyzed.
+                Stored sentiment results for the lead holding will appear here
+                once data has been analyzed.
               </Text>
             </Stack>
           </Box>
@@ -91,14 +95,27 @@ export function SentimentTrendChart({ data }: SentimentTrendChartProps) {
       <CardBody>
         <Box width="100%" height="280px">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 16, right: 16, bottom: 0, left: 0 }}>
+            <AreaChart
+              data={data}
+              margin={{ top: 16, right: 16, bottom: 0, left: 0 }}
+            >
               <defs>
-                <linearGradient id="sentimentScoreFill" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient
+                  id="sentimentScoreFill"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
                   <stop offset="5%" stopColor="#00AC74" stopOpacity={0.28} />
                   <stop offset="95%" stopColor="#00AC74" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
-              <CartesianGrid stroke={chartGrid} strokeDasharray="3 3" vertical={false} />
+              <CartesianGrid
+                stroke={chartGrid}
+                strokeDasharray="3 3"
+                vertical={false}
+              />
               <XAxis
                 dataKey="date"
                 stroke={axisColor}
@@ -119,11 +136,11 @@ export function SentimentTrendChart({ data }: SentimentTrendChartProps) {
                 contentStyle={{
                   backgroundColor: tooltipBg,
                   border: `1px solid ${tooltipBorder}`,
-                  borderRadius: '12px',
+                  borderRadius: "12px",
                 }}
                 formatter={(value: number, key: string) => {
-                  if (key === 'score') {
-                    return [formatScore(value), 'Net sentiment'];
+                  if (key === "score") {
+                    return [formatScore(value), "Net sentiment"];
                   }
 
                   return [`${value.toFixed(0)}%`, key];
@@ -143,7 +160,8 @@ export function SentimentTrendChart({ data }: SentimentTrendChartProps) {
         </Box>
 
         <Text color="gray.500" mt={4}>
-          Net sentiment is calculated from positive minus negative share of analyzed entries.
+          Net sentiment is calculated from positive minus negative share of
+          analyzed entries.
         </Text>
       </CardBody>
     </ChakraCard>

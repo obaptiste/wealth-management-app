@@ -9,7 +9,8 @@ interface LayoutProps {
 
 export const metadata: Metadata = {
   title: "Wealth Pro - Financial Management Platform",
-  description: "Comprehensive wealth management with portfolio tracking, pension planning, and insurance recommendations",
+  description:
+    "Comprehensive wealth management with portfolio tracking, pension planning, and insurance recommendations",
 };
 
 // Distinctive font pairing
@@ -34,16 +35,11 @@ const jetBrainsMonoFont = JetBrains_Mono({
 export default function RootLayout({ children }: LayoutProps) {
   return (
     <html lang="en">
-    <body
-    className={`${syneFont.variable} ${workSansFont.variable} ${jetBrainsMonoFont.variable} antialiased`}
-  >
-    <Providers>{children}</Providers>
-    </body>
+      <body
+        className={`${syneFont.variable} ${workSansFont.variable} ${jetBrainsMonoFont.variable} antialiased`}
+      >
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
-};
-
-
-
-
-
+}

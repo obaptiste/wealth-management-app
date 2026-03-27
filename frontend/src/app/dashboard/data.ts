@@ -1,15 +1,15 @@
-import apiClient from '@/lib/api';
-import { summarizePortfolio } from '@/services/portfolio-summary';
-import { normalizeSentimentResult } from '@/services/sentiment';
-import { buildSentimentTrendPoints } from '@/services/sentiment-trend';
-import type { AssetWithPerformance } from '@/types/assets';
-import type { SentimentChartPoint } from '@/types/chart';
+import apiClient from "@/lib/api";
+import { summarizePortfolio } from "@/services/portfolio-summary";
+import { normalizeSentimentResult } from "@/services/sentiment";
+import { buildSentimentTrendPoints } from "@/services/sentiment-trend";
+import type { AssetWithPerformance } from "@/types/assets";
+import type { SentimentChartPoint } from "@/types/chart";
 import type {
   PortfolioAllocationSlice,
   PortfolioSummaryResult,
   SentimentResult,
-} from '@/types/domain';
-import type { Portfolio, PortfolioWithSummary } from '@/types/portfolios';
+} from "@/types/domain";
+import type { Portfolio, PortfolioWithSummary } from "@/types/portfolios";
 
 interface SentimentTrendPoint {
   date: string;
@@ -29,25 +29,29 @@ export interface DashboardPortfolioSnapshot {
   id: number;
   name: string;
   asset_count: number;
-  summary: PortfolioSummaryResult['summary'];
+  summary: PortfolioSummaryResult["summary"];
 }
 
 export interface DashboardData {
   portfolio_count: number;
   asset_count: number;
-  summary: PortfolioSummaryResult['summary'];
-  metrics: PortfolioSummaryResult['metrics'];
+  summary: PortfolioSummaryResult["summary"];
+  metrics: PortfolioSummaryResult["metrics"];
   top_allocations: PortfolioAllocationSlice[];
   portfolios: DashboardPortfolioSnapshot[];
   primary_sentiment: SentimentResult | null;
   sentiment_trend: SentimentChartPoint[];
 }
 
-function flattenPortfolioAssets(portfolios: PortfolioWithSummary[]): AssetWithPerformance[] {
+function flattenPortfolioAssets(
+  portfolios: PortfolioWithSummary[],
+): AssetWithPerformance[] {
   return portfolios.flatMap((portfolio) => portfolio.assets);
 }
 
-function buildPortfolioSnapshots(portfolios: PortfolioWithSummary[]): DashboardPortfolioSnapshot[] {
+function buildPortfolioSnapshots(
+  portfolios: PortfolioWithSummary[],
+): DashboardPortfolioSnapshot[] {
   return portfolios.map((portfolio) => {
     const result = summarizePortfolio(portfolio.assets);
 
@@ -64,13 +68,18 @@ function toSentimentScore(trend: SentimentTrendPoint): number {
   return (trend.positive - trend.negative) / 100;
 }
 
-async function loadPrimarySentiment(symbol?: string): Promise<SentimentResult | null> {
+async function loadPrimarySentiment(
+  symbol?: string,
+): Promise<SentimentResult | null> {
   if (!symbol) {
     return null;
   }
 
   try {
-    const history = await apiClient.getSentimentHistory(symbol, 7) as SentimentHistoryResponse;
+    const history = (await apiClient.getSentimentHistory(
+      symbol,
+      7,
+    )) as SentimentHistoryResponse;
     const latestTrend = history.sentiment_trends.at(-1);
 
     if (!latestTrend) {
@@ -81,22 +90,30 @@ async function loadPrimarySentiment(symbol?: string): Promise<SentimentResult | 
       symbol: history.symbol,
       score: toSentimentScore(latestTrend),
       confidence: null,
-      source: 'sentiment_history',
+      source: "sentiment_history",
       analyzed_at: new Date(`${latestTrend.date}T00:00:00Z`).toISOString(),
     });
   } catch (error) {
-    console.warn(`Dashboard sentiment history unavailable for ${symbol}`, error);
+    console.warn(
+      `Dashboard sentiment history unavailable for ${symbol}`,
+      error,
+    );
     return null;
   }
 }
 
-async function loadSentimentTrend(symbol?: string): Promise<SentimentChartPoint[]> {
+async function loadSentimentTrend(
+  symbol?: string,
+): Promise<SentimentChartPoint[]> {
   if (!symbol) {
     return [];
   }
 
   try {
-    const history = await apiClient.getSentimentHistory(symbol, 7) as SentimentHistoryResponse;
+    const history = (await apiClient.getSentimentHistory(
+      symbol,
+      7,
+    )) as SentimentHistoryResponse;
     return buildSentimentTrendPoints(history);
   } catch (error) {
     console.warn(`Dashboard sentiment trend unavailable for ${symbol}`, error);
@@ -105,14 +122,19 @@ async function loadSentimentTrend(symbol?: string): Promise<SentimentChartPoint[
 }
 
 async function loadPortfolioDetails(): Promise<PortfolioWithSummary[]> {
-  const portfolios = await apiClient.getPortfolios() as Portfolio[];
+  const portfolios = (await apiClient.getPortfolios()) as Portfolio[];
 
   if (portfolios.length === 0) {
     return [];
   }
 
   return Promise.all(
-    portfolios.map((portfolio) => apiClient.getPortfolio(String(portfolio.id)) as Promise<PortfolioWithSummary>),
+    portfolios.map(
+      (portfolio) =>
+        apiClient.getPortfolio(
+          String(portfolio.id),
+        ) as Promise<PortfolioWithSummary>,
+    ),
   );
 }
 
