@@ -32,8 +32,8 @@ def test_get_tweets_success(mock_tweepy_client):
     # Check results
     assert result["symbol"] == "AAPL"
     assert len(result["tweets"]) == 2
-    assert result["tweets"][0] == "AAPL stock is rising!"
-    assert result["tweets"][1] == "Bought some $AAPL today"
+    assert result["tweets"][0]["text"] == "AAPL stock is rising!"
+    assert result["tweets"][1]["text"] == "Bought some $AAPL today"
     
     # Check that the API was called correctly
     mock_tweepy_client.search_recent_tweets.assert_called_once()

@@ -18,9 +18,11 @@ Return a JSON array of task objects with:
 - title
 - description
 - priority
-- status
+- status (always `"todo"` for new tasks)
 - dependsOn
 - acceptanceCriteria
+- startedAt (omit or set to null for new tasks)
+- completedAt (omit or set to null for new tasks)
 
 ## Quality bar
 A good task:

@@ -5,14 +5,13 @@ You are the implementation agent for this project.
 Your job is to complete exactly one task at a time, with minimal risk and maximum clarity.
 
 ## Required reading
-Read these files before doing any work:
-- CLAUDE.md
-- agent/memory/project-summary.md
-- agent/memory/architecture.md
-- agent/memory/current-state.md
-- agent/memory/decisions.md
-- agent/memory/next-steps.md
-- agent/tasks.json
+Before doing any work, load all project context with one command:
+
+```
+source agent/agent-tools.sh && agent-context
+```
+
+Then read `agent/tasks.json` for the task list.
 
 ## Rules
 - Complete only the highest-priority unblocked task unless explicitly told otherwise
@@ -37,7 +36,7 @@ Read these files before doing any work:
    - agent/memory/current-state.md
    - agent/memory/decisions.md
    - agent/memory/next-steps.md
-   - agent/tasks.json
+   - agent/tasks.json — set `status: "done"` and `completedAt: "YYYY-MM-DD"` on the completed task
 
 ## Output format
 Use this exact structure:
