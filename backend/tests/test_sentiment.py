@@ -8,6 +8,15 @@ client = TestClient(app)
 
 # Mock the sentiment model
 class MockSentimentModel:
+    def analyze(self, text: str):
+        """Single-text analysis used by the /sentiment/analyze endpoint."""
+        if "great" in text.lower():
+            return [{"label": "positive", "score": 0.9}]
+        elif "bad" in text.lower():
+            return [{"label": "negative", "score": 0.8}]
+        else:
+            return [{"label": "neutral", "score": 0.7}]
+
     def __call__(self, texts):
         if isinstance(texts, list):
             return [
@@ -17,12 +26,7 @@ class MockSentimentModel:
                 for text in texts
             ]
         else:
-            if "great" in texts.lower():
-                return [{"label": "positive", "score": 0.9}]
-            elif "bad" in texts.lower():
-                return [{"label": "negative", "score": 0.8}]
-            else:
-                return [{"label": "neutral", "score": 0.7}]
+            return self.analyze(texts)
 
 
 @pytest.fixture(autouse=True)
@@ -54,17 +58,19 @@ def test_analyse_text():
     # Test positive sentiment
     response = client.post("/analyse_text", json={"text": "This stock is great!"})
     assert response.status_code == 200
-    assert response.json()["sentiment"][0]["label"] == "positive"
-    
+    data = response.json()
+    # The new /sentiment/analyze endpoint returns {"sentiment": str, "confidence": float}
+    assert data["sentiment"] == "positive"
+
     # Test negative sentiment
     response = client.post("/analyse_text", json={"text": "This stock is bad!"})
     assert response.status_code == 200
-    assert response.json()["sentiment"][0]["label"] == "negative"
-    
+    assert response.json()["sentiment"] == "negative"
+
     # Test neutral sentiment
     response = client.post("/analyse_text", json={"text": "This stock exists."})
     assert response.status_code == 200
-    assert response.json()["sentiment"][0]["label"] == "neutral"
+    assert response.json()["sentiment"] == "neutral"
 
 
 def test_analyse_tweets(mock_tweets):
@@ -89,10 +95,14 @@ def test_analyse_tweets(mock_tweets):
 def test_analyse_tweets_no_tweets(mock_tweets):
     """Test the analyse_tweets endpoint when no tweets are found"""
     mock_tweets.return_value = {"symbol": "UNKNOWN", "tweets": []}
-    
+
     response = client.post("/analyse_tweets?symbol=UNKNOWN")
     assert response.status_code == 200
-    assert response.json() == {"symbol": "UNKNOWN", "sentiment": "No recent tweets found"}
+    data = response.json()
+    assert data["symbol"] == "UNKNOWN"
+    assert data["total_tweets"] == 0
+    # Neutral should be 100% when there are no tweets
+    assert data["sentiment_summary"]["neutral"] == 100
 
 
 @patch("backend.main.get_tweets_about_stock")
