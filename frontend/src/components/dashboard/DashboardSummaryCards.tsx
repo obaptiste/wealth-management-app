@@ -118,7 +118,7 @@ export function DashboardSummaryCards({ data }: { data: DashboardData }) {
     ? `Profitable positions: ${data.metrics.profitable_positions} of ${data.metrics.asset_count}`
     : "Add assets to populate allocation insights";
 
-   return (
+  return (
     <Stack gap={8}>
       <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
         <SummaryCard

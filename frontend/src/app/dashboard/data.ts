@@ -47,7 +47,7 @@ function toNetSentimentScore(positive: number, negative: number): number {
   return (positive - negative) / 100;
 }
 
-// Fetch sentiment history once so both primary signal and trend can be derived
+// Fetches sentiment history once so both primary signal and trend can be derived
 // from a single API call. Returns null on failure so callers can degrade gracefully.
 async function loadSentimentHistory(
   symbol: string,
