@@ -116,7 +116,7 @@ export function DashboardSummaryCards({ data }: { data: DashboardData }) {
           title="Portfolio Value"
           primary={formatCurrency(data.summary.total_value)}
           secondary={hasAssets ? `${formatPercent(data.summary.total_profit_loss_percent)} since inception` : 'Waiting for portfolio holdings'}
-          accentColor={data.summary.total_profit_loss >= 0 ? 'green.500' : 'gray.500'}
+          accentColor={data.summary.total_profit_loss >= 0 ? 'green.500' : 'red.500'}
         />
 
         <SummaryCard
