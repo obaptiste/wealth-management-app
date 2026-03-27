@@ -124,14 +124,8 @@ async def auth_client(test_client):
     )
     token = token_resp.json()["access_token"]
 
-    # Return a new client that always sends the auth header
-    async def _override_get_db():
-        yield test_db  # noqa: F821 – test_db is captured from outer scope
-
-    # Re-apply the DB override for the authenticated client
-    async def _override_get_db_auth():
-        yield test_db  # noqa: F821
-
+    # Return a new client that always sends the auth header.
+    # The DB override is already active (applied by the test_client fixture above).
     async with AsyncClient(
         transport=ASGITransport(app=main.app),
         base_url="http://test",
