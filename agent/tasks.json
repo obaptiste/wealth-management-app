@@ -126,7 +126,8 @@
       "Watchlist panel uses normalized data",
       "Signal logic is not hardcoded into presentation components",
       "Panel can tolerate incomplete upstream data"
-    ]
+    ],
+    "startedAt": "2026-03-27"
   },
   {
     "id": "task-009",

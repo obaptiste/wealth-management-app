@@ -78,11 +78,23 @@ print("\nBy priority:")
 for k, v in sorted(priority_counts.items()):
     print(f"  {k}: {v}")
 
-print("\nOpen tasks:")
+done_ids = {t["id"] for t in tasks if t.get("status") == "done"}
+
+in_progress = [t for t in tasks if t.get("status") == "in_progress"]
+if in_progress:
+    print("\nIn progress:")
+    for task in in_progress:
+        started = task.get("startedAt", "—")
+        print(f"- {task['id']} | {task['priority']} | started: {started} | {task['title']}")
+
+print("\nOpen tasks (todo):")
 for task in tasks:
-    if task.get("status") != "done":
-        deps = ", ".join(task.get("dependsOn", [])) or "none"
-        print(f"- {task['id']} | {task['priority']} | {task['status']} | deps: {deps} | {task['title']}")
+    if task.get("status") not in ("done", "in_progress"):
+        deps = task.get("dependsOn", [])
+        blocked = any(dep not in done_ids for dep in deps)
+        label = "BLOCKED" if blocked else "ready"
+        deps_str = ", ".join(deps) or "none"
+        print(f"- {task['id']} | {task['priority']} | {label} | deps: {deps_str} | {task['title']}")
 PY
   else
     echo "No tasks.json found."
@@ -106,6 +118,8 @@ with open(path, "r", encoding="utf-8") as f:
 
 done_ids = {t["id"] for t in tasks if t.get("status") == "done"}
 priority_order = {"high": 0, "medium": 1, "low": 2}
+# in_progress tasks sort ahead of todo tasks at the same priority level
+status_order = {"in_progress": 0, "todo": 1}
 
 unblocked = []
 for task in tasks:
@@ -115,7 +129,11 @@ for task in tasks:
     if all(dep in done_ids for dep in deps):
         unblocked.append(task)
 
-unblocked.sort(key=lambda t: (priority_order.get(t.get("priority", "low"), 99), t["id"]))
+unblocked.sort(key=lambda t: (
+    priority_order.get(t.get("priority", "low"), 99),
+    status_order.get(t.get("status", "todo"), 99),
+    t["id"],
+))
 
 if not unblocked:
     print("No unblocked tasks found.")
@@ -124,21 +142,78 @@ else:
     print(f"{t['id']}: {t['title']}")
     print(f"Priority: {t.get('priority')}")
     print(f"Status: {t.get('status')}")
+    if t.get("startedAt"):
+        print(f"Started: {t['startedAt']}")
     print(f"Description: {t.get('description')}")
 PY
 }
 
+agent-blocked() {
+  if [[ ! -f "$AGENT_TASKS_FILE" ]]; then
+    echo "Missing $AGENT_TASKS_FILE"
+    return 1
+  fi
+
+  AGENT_TASKS_FILE="$AGENT_TASKS_FILE" python3 - <<'PY'
+import json
+import os
+
+path = os.environ["AGENT_TASKS_FILE"]
+
+with open(path, "r", encoding="utf-8") as f:
+    tasks = json.load(f)
+
+done_ids = {t["id"] for t in tasks if t.get("status") == "done"}
+id_to_title = {t["id"]: t["title"] for t in tasks}
+
+blocked = []
+for task in tasks:
+    if task.get("status") == "done":
+        continue
+    missing_deps = [dep for dep in task.get("dependsOn", []) if dep not in done_ids]
+    if missing_deps:
+        blocked.append((task, missing_deps))
+
+if not blocked:
+    print("No blocked tasks.")
+else:
+    print("Blocked tasks:")
+    for task, missing in blocked:
+        print(f"\n- {task['id']} | {task['priority']} | {task['title']}")
+        for dep in missing:
+            label = id_to_title.get(dep, dep)
+            dep_status = next((t.get("status", "?") for t in tasks if t["id"] == dep), "?")
+            print(f"    waiting on: {dep} ({dep_status}) — {label}")
+PY
+}
+
+agent-context() {
+  # Print all memory files in a single pass so agents can read context with
+  # one command instead of opening seven files individually. This reduces the
+  # per-session token overhead when priming an agent with project state.
+  for file in \
+    "CLAUDE.md" \
+    "$AGENT_MEMORY_DIR/project-summary.md" \
+    "$AGENT_MEMORY_DIR/architecture.md" \
+    "$AGENT_MEMORY_DIR/current-state.md" \
+    "$AGENT_MEMORY_DIR/decisions.md" \
+    "$AGENT_MEMORY_DIR/next-steps.md"
+  do
+    if [[ -f "$file" ]]; then
+      echo "===== $file ====="
+      cat "$file"
+      echo
+    else
+      echo "===== $file (missing) ====="
+      echo
+    fi
+  done
+}
+
 agent-start() {
   cat <<'EOF'
-Read these files first:
-- CLAUDE.md
-- agent/memory/project-summary.md
-- agent/memory/architecture.md
-- agent/memory/current-state.md
-- agent/memory/decisions.md
-- agent/memory/next-steps.md
-- agent/tasks.json
-- agent/prompts/worker.md
+Run `source agent/agent-tools.sh && agent-context` to load all project context
+in one step, then read agent/tasks.json and agent/prompts/worker.md.
 
 Then act as the implementation agent described in agent/prompts/worker.md.
 
@@ -157,14 +232,8 @@ EOF
 
 agent-review() {
   cat <<'EOF'
-Read these files first:
-- CLAUDE.md
-- agent/memory/project-summary.md
-- agent/memory/architecture.md
-- agent/memory/current-state.md
-- agent/memory/decisions.md
-- agent/tasks.json
-- agent/prompts/reviewer.md
+Run `source agent/agent-tools.sh && agent-context` to load all project context
+in one step, then read agent/tasks.json and agent/prompts/reviewer.md.
 
 Then act as the review agent described in agent/prompts/reviewer.md.
 
@@ -183,14 +252,8 @@ EOF
 
 agent-plan() {
   cat <<'EOF'
-Read these files first:
-- CLAUDE.md
-- agent/memory/project-summary.md
-- agent/memory/architecture.md
-- agent/memory/current-state.md
-- agent/memory/decisions.md
-- agent/tasks.json
-- agent/prompts/planner.md
+Run `source agent/agent-tools.sh && agent-context` to load all project context
+in one step, then read agent/tasks.json and agent/prompts/planner.md.
 
 Then act as the planning agent described in agent/prompts/planner.md.
 
@@ -210,8 +273,11 @@ agent-log() {
 Date: $(date)
 Repo: $(agent-root)
 
-## Current next task
-$(agent-next 2>/dev/null || true)
+## Next task
+$(agent-next 2>/dev/null || echo "(none)")
+
+## Blocked tasks
+$(agent-blocked 2>/dev/null || echo "(none)")
 
 ## Notes
 - 
@@ -226,19 +292,26 @@ EOF
   echo "Created log: $file"
 }
 
-agent-done() {
-  local task_id="${1:-}"
-  if [[ -z "$task_id" ]]; then
-    echo "Usage: agent-done task-001"
-    return 1
-  fi
+# -----------------------------
+# shared internal helper
+# Sets task status and optional timestamp fields.
+# Usage: _agent_set_task_status <task-id> <status> [timestamp-key] [timestamp-value]
+# -----------------------------
+_agent_set_task_status() {
+  local task_id="$1"
+  local new_status="$2"
+  local ts_key="${3:-}"
+  local ts_val="${4:-}"
 
-  AGENT_TASKS_FILE="$AGENT_TASKS_FILE" python3 - "$task_id" <<'PY'
+  AGENT_TASKS_FILE="$AGENT_TASKS_FILE" python3 - "$task_id" "$new_status" "$ts_key" "$ts_val" <<'PY'
 import json
 import os
 import sys
 
 task_id = sys.argv[1]
+new_status = sys.argv[2]
+ts_key = sys.argv[3] if len(sys.argv) > 3 else ""
+ts_val = sys.argv[4] if len(sys.argv) > 4 else ""
 path = os.environ["AGENT_TASKS_FILE"]
 
 with open(path, "r", encoding="utf-8") as f:
@@ -247,7 +320,9 @@ with open(path, "r", encoding="utf-8") as f:
 found = False
 for task in tasks:
     if task.get("id") == task_id:
-        task["status"] = "done"
+        task["status"] = new_status
+        if ts_key and ts_val:
+            task[ts_key] = ts_val
         found = True
         break
 
@@ -259,8 +334,19 @@ with open(path, "w", encoding="utf-8") as f:
     json.dump(tasks, f, indent=2)
     f.write("\n")
 
-print(f"Marked {task_id} as done.")
+print(f"Marked {task_id} as {new_status}.")
 PY
+}
+
+agent-done() {
+  local task_id="${1:-}"
+  if [[ -z "$task_id" ]]; then
+    echo "Usage: agent-done task-001"
+    return 1
+  fi
+  local today
+  today="$(date +"%Y-%m-%d")"
+  _agent_set_task_status "$task_id" "done" "completedAt" "$today"
 }
 
 agent-in-progress() {
@@ -269,35 +355,9 @@ agent-in-progress() {
     echo "Usage: agent-in-progress task-001"
     return 1
   fi
-
-  AGENT_TASKS_FILE="$AGENT_TASKS_FILE" python3 - "$task_id" <<'PY'
-import json
-import os
-import sys
-
-task_id = sys.argv[1]
-path = os.environ["AGENT_TASKS_FILE"]
-
-with open(path, "r", encoding="utf-8") as f:
-    tasks = json.load(f)
-
-found = False
-for task in tasks:
-    if task.get("id") == task_id:
-        task["status"] = "in_progress"
-        found = True
-        break
-
-if not found:
-    print(f"Task not found: {task_id}")
-    sys.exit(1)
-
-with open(path, "w", encoding="utf-8") as f:
-    json.dump(tasks, f, indent=2)
-    f.write("\n")
-
-print(f"Marked {task_id} as in_progress.")
-PY
+  local today
+  today="$(date +"%Y-%m-%d")"
+  _agent_set_task_status "$task_id" "in_progress" "startedAt" "$today"
 }
 
 agent-help() {
@@ -305,14 +365,16 @@ agent-help() {
 Available commands:
 
 agent-check          # verify scaffold files exist
-agent-status         # show task summary
-agent-next           # show next unblocked task
+agent-status         # show task summary (in-progress, todo, blocked)
+agent-next           # show next unblocked task (in-progress first)
+agent-blocked        # show blocked tasks and what is blocking them
+agent-context        # print all memory files in one pass (for agent priming)
 agent-start          # print worker prompt
 agent-review         # print reviewer prompt
 agent-plan           # print planner prompt
 agent-log            # create a dated session log
-agent-done ID        # mark a task done
-agent-in-progress ID # mark a task in progress
+agent-done ID        # mark a task done (sets completedAt)
+agent-in-progress ID # mark a task in progress (sets startedAt)
 agent-help           # show this help
 EOF
 }
