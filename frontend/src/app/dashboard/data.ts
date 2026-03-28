@@ -1,7 +1,11 @@
 import apiClient from "@/lib/api";
 import { summarizePortfolio } from "@/services/portfolio-summary";
 import { normalizeSentimentResult } from "@/services/sentiment";
-import { buildSentimentTrendPoints } from "@/services/sentiment-trend";
+import {
+  buildSentimentTrendPoints,
+  type RawSentimentHistory,
+  type RawSentimentTrendPoint,
+} from "@/services/sentiment-trend";
 import type { AssetWithPerformance } from "@/types/assets";
 import type { SentimentChartPoint } from "@/types/chart";
 import type {
@@ -10,20 +14,6 @@ import type {
   SentimentResult,
 } from "@/types/domain";
 import type { Portfolio, PortfolioWithSummary } from "@/types/portfolios";
-
-interface SentimentTrendPoint {
-  date: string;
-  positive: number;
-  negative: number;
-  neutral: number;
-  total_analyzed: number;
-}
-
-interface SentimentHistoryResponse {
-  symbol: string;
-  days_analyzed: number;
-  sentiment_trends: SentimentTrendPoint[];
-}
 
 export interface DashboardPortfolioSnapshot {
   id: number;
@@ -64,8 +54,8 @@ function buildPortfolioSnapshots(
   });
 }
 
-function toSentimentScore(trend: SentimentTrendPoint): number {
-  return (trend.positive - trend.negative) / 100;
+function toSentimentScore(trend: RawSentimentTrendPoint): number {
+  return ((trend.positive ?? 0) - (trend.negative ?? 0)) / 100;
 }
 
 async function loadPrimarySentiment(
@@ -79,19 +69,24 @@ async function loadPrimarySentiment(
     const history = (await apiClient.getSentimentHistory(
       symbol,
       7,
-    )) as SentimentHistoryResponse;
-    const latestTrend = history.sentiment_trends.at(-1);
+    )) as RawSentimentHistory;
+    const latestTrend = history.sentiment_trends?.at(-1);
 
     if (!latestTrend) {
       return null;
     }
 
+    const trendDate = latestTrend.date;
+    if (!trendDate) {
+      return null;
+    }
+
     return normalizeSentimentResult({
-      symbol: history.symbol,
+      symbol: history.symbol ?? symbol,
       score: toSentimentScore(latestTrend),
       confidence: null,
       source: "sentiment_history",
-      analyzed_at: new Date(`${latestTrend.date}T00:00:00Z`).toISOString(),
+      analyzed_at: new Date(`${trendDate}T00:00:00Z`).toISOString(),
     });
   } catch (error) {
     console.warn(
@@ -113,7 +108,7 @@ async function loadSentimentTrend(
     const history = (await apiClient.getSentimentHistory(
       symbol,
       7,
-    )) as SentimentHistoryResponse;
+    )) as RawSentimentHistory;
     return buildSentimentTrendPoints(history);
   } catch (error) {
     console.warn(`Dashboard sentiment trend unavailable for ${symbol}`, error);
