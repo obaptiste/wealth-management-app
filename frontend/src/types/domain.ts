@@ -46,10 +46,26 @@ export interface PortfolioSummaryResult {
 
 export interface WatchlistItem {
   symbol: string;
-  display_name?: string;
-  added_at: string;
-  notes?: string;
-  latest_sentiment?: SentimentResult;
+  display_name?: string | null;
+  added_at: string | null;
+  notes?: string | null;
+  latest_sentiment?: SentimentResult | null;
+}
+
+export type WatchlistSignalTrend =
+  | "improving"
+  | "worsening"
+  | "steady"
+  | "unavailable";
+
+export type WatchlistSignalStrength = "high" | "medium" | "low" | "none";
+
+export interface WatchlistSignalItem extends WatchlistItem {
+  latest_sentiment: SentimentResult | null;
+  last_analyzed_at: string | null;
+  trend: WatchlistSignalTrend;
+  sentiment_delta: number | null;
+  signal_strength: WatchlistSignalStrength;
 }
 
 export interface PortfolioSnapshot {

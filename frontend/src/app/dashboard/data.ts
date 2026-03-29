@@ -1,16 +1,21 @@
 import apiClient from "@/lib/api";
+import { mapSentimentScoreToLabel } from "@/services/sentiment";
 import { summarizePortfolio } from "@/services/portfolio-summary";
 import {
   buildSentimentTrendPoints,
   type RawSentimentHistory,
 } from "@/services/sentiment-trend";
+import {
+  buildWatchlistSignalItems,
+  type RawWatchlistItem,
+} from "@/services/watchlist-signals";
 import type { AssetWithPerformance } from "@/types/assets";
 import type { SentimentChartPoint } from "@/types/chart";
 import type {
   PortfolioAllocationSlice,
   PortfolioSummaryResult,
-  SentimentLabel,
   SentimentResult,
+  WatchlistSignalItem,
 } from "@/types/domain";
 import type { Portfolio, PortfolioWithSummary } from "@/types/portfolios";
 
@@ -30,17 +35,13 @@ export interface DashboardData {
   portfolios: DashboardPortfolioSnapshot[];
   primary_sentiment: SentimentResult | null;
   sentiment_trend: SentimentChartPoint[];
+  watchlist:
+    | { status: "available"; items: WatchlistSignalItem[] }
+    | { status: "unavailable"; items: [] }
+    | { status: "error"; items: [] };
 }
 
-// Maps a net sentiment score in [-1, 1] to a domain label without going through
-// normalizeSentimentScore, which assumes [0, 1] inputs are raw model probabilities.
-function scoreToSentimentLabel(score: number): SentimentLabel {
-  if (score >= 0.5) return "very_bullish";
-  if (score >= 0.1) return "bullish";
-  if (score > -0.1) return "neutral";
-  if (score > -0.5) return "bearish";
-  return "very_bearish";
-}
+const WATCHLIST_SIGNAL_LIMIT = 4;
 
 // Net sentiment score in [-1, 1] derived from percentage breakdown.
 function toNetSentimentScore(positive: number, negative: number): number {
@@ -85,7 +86,7 @@ function derivePrimarySentiment(
   return {
     symbol: (history.symbol ?? "UNKNOWN").toUpperCase(),
     score,
-    label: scoreToSentimentLabel(score),
+    label: mapSentimentScoreToLabel(score),
     confidence: null,
     source: "sentiment_history",
     analyzed_at: new Date(`${latestTrend.date}T00:00:00Z`).toISOString(),
@@ -140,16 +141,95 @@ async function loadPortfolioDetails(): Promise<PortfolioWithSummary[]> {
   );
 }
 
+function isFeatureUnavailable(error: unknown): boolean {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "response" in error &&
+    typeof error.response === "object" &&
+    error.response !== null &&
+    "status" in error.response
+  ) {
+    const status = error.response.status;
+
+    return status === 404 || status === 405 || status === 501;
+  }
+
+  return false;
+}
+
+async function loadRawWatchlistItems(): Promise<
+  | { status: "available"; items: RawWatchlistItem[] }
+  | { status: "unavailable"; items: [] }
+  | { status: "error"; items: [] }
+> {
+  try {
+    const items = (await apiClient.getWatchlist()) as RawWatchlistItem[];
+
+    return {
+      status: "available",
+      items,
+    };
+  } catch (error) {
+    if (isFeatureUnavailable(error)) {
+      console.warn("Dashboard watchlist endpoint unavailable", error);
+      return { status: "unavailable", items: [] };
+    }
+
+    console.warn("Dashboard watchlist request failed", error);
+    return { status: "error", items: [] };
+  }
+}
+
+async function loadWatchlistHistories(
+  items: RawWatchlistItem[],
+): Promise<Record<string, RawSentimentHistory | null>> {
+  const uniqueSymbols = Array.from(
+    new Set(
+      items
+        .map((item) => item.symbol?.trim().toUpperCase())
+        .filter((symbol): symbol is string => Boolean(symbol)),
+    ),
+  ).slice(0, WATCHLIST_SIGNAL_LIMIT);
+
+  const histories = await Promise.all(
+    uniqueSymbols.map(async (symbol) => {
+      return [symbol, await loadSentimentHistory(symbol)] as const;
+    }),
+  );
+
+  return Object.fromEntries(histories);
+}
+
+async function loadWatchlistPanelData(): Promise<DashboardData["watchlist"]> {
+  const watchlist = await loadRawWatchlistItems();
+
+  if (watchlist.status !== "available") {
+    return watchlist;
+  }
+
+  const selectedItems = watchlist.items.slice(0, WATCHLIST_SIGNAL_LIMIT);
+  const historyBySymbol = await loadWatchlistHistories(selectedItems);
+
+  return {
+    status: "available",
+    items: buildWatchlistSignalItems(selectedItems, historyBySymbol).slice(
+      0,
+      WATCHLIST_SIGNAL_LIMIT,
+    ),
+  };
+}
+
 export async function loadDashboardData(): Promise<DashboardData> {
   const portfolios = await loadPortfolioDetails();
   const allAssets = flattenPortfolioAssets(portfolios);
   const summaryResult = summarizePortfolio(allAssets);
   const primarySymbol = summaryResult.allocations[0]?.symbol;
 
-  // Fetch sentiment history once; both primary signal and trend series are derived from it.
-  const sentimentHistory = primarySymbol
-    ? await loadSentimentHistory(primarySymbol)
-    : null;
+  const [sentimentHistory, watchlist] = await Promise.all([
+    primarySymbol ? loadSentimentHistory(primarySymbol) : Promise.resolve(null),
+    loadWatchlistPanelData(),
+  ]);
 
   return {
     portfolio_count: portfolios.length,
@@ -160,5 +240,6 @@ export async function loadDashboardData(): Promise<DashboardData> {
     portfolios: buildPortfolioSnapshots(portfolios),
     primary_sentiment: derivePrimarySentiment(sentimentHistory),
     sentiment_trend: deriveSentimentTrend(sentimentHistory),
+    watchlist,
   };
 }

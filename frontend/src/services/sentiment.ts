@@ -91,6 +91,29 @@ export function normalizeSentimentLabel(
 }
 
 /**
+ * Map an already-normalized sentiment score in [-1, 1] to a domain label.
+ */
+export function mapSentimentScoreToLabel(score: number): SentimentLabel {
+  if (score >= 0.5) {
+    return "very_bullish";
+  }
+
+  if (score >= 0.1) {
+    return "bullish";
+  }
+
+  if (score > -0.1) {
+    return "neutral";
+  }
+
+  if (score > -0.5) {
+    return "bearish";
+  }
+
+  return "very_bearish";
+}
+
+/**
  * Build a stable SentimentResult from raw sentiment payloads.
  */
 export function normalizeSentimentResult(

@@ -153,6 +153,11 @@ class ApiClient {
     return response.data;
   }
 
+  async getWatchlist() {
+    const response = await this.client.get("/watchlist");
+    return response.data;
+  }
+
   // Currency conversion endpoints
   async convertCurrency(from: string, to: string, amount: number) {
     const response = await this.client.post("/currency/convert", {
