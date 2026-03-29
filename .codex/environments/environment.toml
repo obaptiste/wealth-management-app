@@ -9,6 +9,7 @@ script = ""
 name = "Run"
 icon = "run"
 command = '''
+cd frontend
 npm i
 npx prettier --write .
 npm run dev
