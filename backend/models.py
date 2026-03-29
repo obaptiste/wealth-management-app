@@ -143,6 +143,29 @@ class InsuranceProduct(Base, TimestampMixin):
     def __repr__(self):
         return f"<InsuranceProduct(id={self.id}, name='{self.name}', type='{self.type}')>"
 
+class WatchlistItem(Base, TimestampMixin):
+    """A single symbol on a user's watchlist."""
+
+    __tablename__ = "watchlist_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    symbol = Column(String(20), nullable=False)
+    display_name = Column(String(100), nullable=True)
+    notes = Column(Text, nullable=True)
+
+    # Relationships
+    owner = relationship("User", backref="watchlist_items")
+
+    __table_args__ = (
+        # Each user can only add a symbol once
+        Index('idx_watchlist_user_symbol', 'user_id', 'symbol', unique=True),
+    )
+
+    def __repr__(self):
+        return f"<WatchlistItem(id={self.id}, user_id={self.user_id}, symbol='{self.symbol}')>"
+
+
 class PensionPlan(Base, TimestampMixin):
     """Model for user pension plans."""
 
