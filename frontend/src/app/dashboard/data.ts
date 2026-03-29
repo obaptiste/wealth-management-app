@@ -37,7 +37,8 @@ export interface DashboardData {
   sentiment_trend: SentimentChartPoint[];
   watchlist:
     | { status: "available"; items: WatchlistSignalItem[] }
-    | { status: "unavailable"; items: [] };
+    | { status: "unavailable"; items: [] }
+    | { status: "error"; items: [] };
 }
 
 const WATCHLIST_SIGNAL_LIMIT = 4;
@@ -160,6 +161,7 @@ function isFeatureUnavailable(error: unknown): boolean {
 async function loadRawWatchlistItems(): Promise<
   | { status: "available"; items: RawWatchlistItem[] }
   | { status: "unavailable"; items: [] }
+  | { status: "error"; items: [] }
 > {
   try {
     const items = (await apiClient.getWatchlist()) as RawWatchlistItem[];
@@ -171,14 +173,11 @@ async function loadRawWatchlistItems(): Promise<
   } catch (error) {
     if (isFeatureUnavailable(error)) {
       console.warn("Dashboard watchlist endpoint unavailable", error);
-    } else {
-      console.warn("Dashboard watchlist request failed", error);
+      return { status: "unavailable", items: [] };
     }
 
-    return {
-      status: "unavailable",
-      items: [],
-    };
+    console.warn("Dashboard watchlist request failed", error);
+    return { status: "error", items: [] };
   }
 }
 
@@ -205,7 +204,7 @@ async function loadWatchlistHistories(
 async function loadWatchlistPanelData(): Promise<DashboardData["watchlist"]> {
   const watchlist = await loadRawWatchlistItems();
 
-  if (watchlist.status === "unavailable") {
+  if (watchlist.status !== "available") {
     return watchlist;
   }
 
