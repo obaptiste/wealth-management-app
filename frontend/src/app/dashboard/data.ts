@@ -195,12 +195,7 @@ async function loadWatchlistHistories(
 
   const histories = await Promise.all(
     uniqueSymbols.map(async (symbol) => {
-      try {
-        return [symbol, await loadSentimentHistory(symbol)] as const;
-      } catch (error) {
-        console.warn(`Dashboard watchlist sentiment unavailable for ${symbol}`, error);
-        return [symbol, null] as const;
-      }
+      return [symbol, await loadSentimentHistory(symbol)] as const;
     }),
   );
 
