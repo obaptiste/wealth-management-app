@@ -340,6 +340,8 @@ export default function WatchlistPage() {
                     <Skeleton height="24px" width="30%" />
                     <SkeletonText noOfLines={5} spacing={4} skeletonHeight={3} />
                   </Stack>
+                ) : state.status === "error" ? (
+                  <Text color="red.500">{state.message}</Text>
                 ) : state.items.length === 0 ? (
                   <Text color="gray.500">
                     No symbols are being tracked yet. Add one above to start the
