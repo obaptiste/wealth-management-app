@@ -1,13 +1,14 @@
 import {
   mapSentimentScoreToLabel,
-  normalizeSentimentResult,
+  normalizeSentimentConfidence,
+  normalizeSentimentLabel,
   type RawSentimentInput,
 } from "@/services/sentiment";
 import {
   buildSentimentTrendPoints,
   type RawSentimentHistory,
 } from "@/services/sentiment-trend";
-import type { WatchlistSignalItem } from "@/types/domain";
+import type { SentimentResult, WatchlistSignalItem } from "@/types/domain";
 
 export interface RawWatchlistItem {
   symbol?: string | null;
@@ -27,6 +28,45 @@ const SIGNAL_PRIORITY: Record<WatchlistSignalItem["signal_strength"], number> = 
   none: 0,
 };
 
+function clampScore(score: number): number {
+  return Math.min(Math.max(score, -1), 1);
+}
+
+function deriveEmbeddedScore(input: RawSentimentInput): number {
+  if (typeof input.score === "number" && Number.isFinite(input.score)) {
+    return clampScore(input.score);
+  }
+
+  const confidence = normalizeSentimentConfidence(input.confidence) ?? 0;
+  const label = normalizeSentimentLabel(input.label);
+
+  if (label === "bullish" || label === "very_bullish") {
+    return confidence;
+  }
+
+  if (label === "bearish" || label === "very_bearish") {
+    return -confidence;
+  }
+
+  return 0;
+}
+
+function normalizeEmbeddedSentiment(
+  input: RawSentimentInput,
+  symbol: string,
+): SentimentResult {
+  const score = deriveEmbeddedScore(input);
+
+  return {
+    symbol,
+    score,
+    label: mapSentimentScoreToLabel(score),
+    confidence: normalizeSentimentConfidence(input.confidence),
+    source: (input.source ?? "unknown").trim() || "unknown",
+    analyzed_at: input.analyzed_at ?? new Date().toISOString(),
+  };
+}
+
 function normalizeWatchlistItem(input: RawWatchlistItem): WatchlistSignalItem | null {
   const symbol = input.symbol?.trim().toUpperCase();
 
@@ -35,10 +75,7 @@ function normalizeWatchlistItem(input: RawWatchlistItem): WatchlistSignalItem | 
   }
 
   const latestSentiment = input.latest_sentiment
-    ? normalizeSentimentResult({
-        ...input.latest_sentiment,
-        symbol,
-      })
+    ? normalizeEmbeddedSentiment(input.latest_sentiment, symbol)
     : null;
 
   return {

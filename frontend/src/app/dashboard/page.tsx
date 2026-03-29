@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   Box,
   Button,
@@ -128,6 +129,9 @@ export default function Dashboard() {
           <Flex gap={6} flexDirection={{ base: "column", md: "row" }} mt={8}>
             <Button colorScheme="primary" size="lg">
               Add Asset
+            </Button>
+            <Button as={Link} href="/watchlist" variant="outline" size="lg">
+              Open Watchlist
             </Button>
             <Button colorScheme="secondary" size="lg">
               View Reports

@@ -208,9 +208,17 @@ A reviewer pass on task-006/task-007 identified four bugs. All are now fixed:
 - Added Alembic migration `add_watchlist_items.py` (revision `a1b2c3d4e5f6`, down_revision `f9d3e2c1a8b4`).
 - Frontend `/watchlist` page and API client methods remain to be built (task-008 frontend phase).
 
+### 20. Watchlist frontend flow completed (task-008, 2026-03-29)
+
+- Added `frontend/src/app/watchlist/page.tsx` as the watchlist management route for listing, adding, and removing tracked symbols.
+- `frontend/src/lib/api.ts` now exposes `addToWatchlist()` and `removeFromWatchlist()` alongside `getWatchlist()`.
+- `frontend/src/app/dashboard/page.tsx` now links to the `/watchlist` route so the new flow is discoverable from the dashboard.
+- Fixed watchlist signal normalization in `frontend/src/services/watchlist-signals.ts`: embedded backend watchlist scores are now treated as already-normalized `[-1, 1]` values instead of being re-processed as raw model probabilities.
+- Fixed dashboard watchlist selection in `frontend/src/app/dashboard/data.ts`: the loader now ranks the full watchlist first, then fetches history for the top symbols instead of permanently trimming to the oldest four entries.
+- Verification passes for targeted ESLint, `npm run build`, and `./node_modules/.bin/tsc --noEmit` in `frontend/`.
+
 ## Likely priorities (updated)
 
-1. Merge the backend watchlist branch and verify the end-to-end dashboard watchlist flow
-2. Add watchlist frontend: `/watchlist` page + `apiClient.getWatchlist()` / `addToWatchlist()` / `removeFromWatchlist()` methods
-3. Establish historical snapshot plan (task-010)
-4. Review the frontend auth flow against the backend runtime contract beyond compile-time alignment
+1. Establish historical snapshot plan (task-010)
+2. Review the frontend auth flow against the backend runtime contract beyond compile-time alignment
+3. Validate the watchlist flow in a live authenticated environment once the backend dependencies are available
