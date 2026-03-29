@@ -1896,6 +1896,7 @@ async def add_to_watchlist(
         display_name=payload.display_name,
         notes=payload.notes,
     )
+    
     try:
         db.add(new_item)
         await db.commit()
