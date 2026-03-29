@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import func
 from sqlalchemy.orm import selectinload
+from sqlalchemy.exc import IntegrityError
 from datetime import datetime, timedelta, timezone
 import yfinance as yf
 from functools import lru_cache
@@ -15,7 +16,7 @@ from typing import List, Optional, Dict, Any, cast
 
 # Import local modules
 from .database import get_db_dependency
-from .models import User, Portfolio, Asset, SentimentResult, AssetPriceHistory, InsuranceProduct, PensionPlan
+from .models import User, Portfolio, Asset, SentimentResult, AssetPriceHistory, InsuranceProduct, PensionPlan, WatchlistItem
 from .schemas import (
     UserCreate, UserOut, Token, PortfolioCreate, PortfolioOut,
     PortfolioUpdate, PortfolioWithSummary, PortfolioSummary, AssetCreate, AssetOut,
@@ -24,7 +25,7 @@ from .schemas import (
     ExchangeRatesResponse, InsuranceProductOut, InsuranceRecommendationRequest,
     InsuranceRecommendation, InsuranceRecommendationsResponse, PensionPlanCreate,
     PensionPlanUpdate, PensionPlanOut, PensionCalculationRequest, PensionCalculationResponse,
-    PensionProjection
+    PensionProjection, WatchlistItemCreate, WatchlistItemOut, WatchlistItemSentiment
 )
 from .auth import (
     authenticate_user, create_access_token, get_current_user,
@@ -1802,6 +1803,161 @@ async def get_stock_tweets_legacy(symbol: str):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred while fetching tweets: {str(e)}"
         )
+
+# ---------------------------------------------------------------------------
+# Watchlist endpoints
+# ---------------------------------------------------------------------------
+
+def _sentiment_to_score(sentiment: str, confidence: float) -> float:
+    """Map raw FinBERT sentiment label + confidence to a [-1, 1] score."""
+    if sentiment == "positive":
+        return confidence
+    if sentiment == "negative":
+        return -confidence
+    return 0.0
+
+
+async def _latest_sentiment_for_symbol(
+    db: AsyncSession, symbol: str
+) -> Optional[WatchlistItemSentiment]:
+    """Return the most recent SentimentResult for a symbol, or None."""
+    result = await db.execute(
+        select(SentimentResult)
+        .where(SentimentResult.symbol == symbol)
+        .order_by(SentimentResult.created_at.desc())
+        .limit(1)
+    )
+    row = result.scalars().first()
+    if row is None:
+        return None
+    return WatchlistItemSentiment(
+        symbol=row.symbol,
+        score=_sentiment_to_score(row.sentiment, row.confidence),
+        label=row.sentiment,
+        confidence=row.confidence,
+        source=row.source_text or "sentiment_model",
+        analyzed_at=row.created_at,
+    )
+
+
+@app.get("/watchlist", response_model=List[WatchlistItemOut], tags=["Watchlist"])
+async def get_watchlist(
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db_dependency),
+):
+    """Return all symbols on the authenticated user's watchlist, with latest sentiment."""
+    result = await db.execute(
+        select(WatchlistItem)
+        .where(WatchlistItem.user_id == current_user.id)
+        .order_by(WatchlistItem.created_at.asc())
+    )
+    items = result.scalars().all()
+
+    # Enrich each item with the latest sentiment (one query per symbol).
+    # For typical watchlist sizes (< 50 symbols) this is acceptable.
+    output: List[WatchlistItemOut] = []
+    for item in items:
+        latest_sentiment = await _latest_sentiment_for_symbol(db, item.symbol)
+        output.append(
+            WatchlistItemOut(
+                symbol=item.symbol,
+                display_name=item.display_name,
+                added_at=item.created_at,
+                notes=item.notes,
+                latest_sentiment=latest_sentiment,
+            )
+        )
+    return output
+
+
+@app.post("/watchlist", response_model=WatchlistItemOut, status_code=status.HTTP_201_CREATED, tags=["Watchlist"])
+async def add_to_watchlist(
+    payload: WatchlistItemCreate,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db_dependency),
+):
+    """Add a symbol to the authenticated user's watchlist."""
+    # Reject duplicates
+    existing = await db.execute(
+        select(WatchlistItem).where(
+            WatchlistItem.user_id == current_user.id,
+            WatchlistItem.symbol == payload.symbol,
+        )
+    )
+    if existing.scalars().first() is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Symbol '{payload.symbol}' is already on your watchlist",
+        )
+
+    new_item = WatchlistItem(
+        user_id=current_user.id,
+        symbol=payload.symbol,
+        display_name=payload.display_name,
+        notes=payload.notes,
+    )
+    try:
+        db.add(new_item)
+        await db.commit()
+        await db.refresh(new_item)
+        logger.info(f"Watchlist: user {current_user.id} added {payload.symbol}")
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Symbol '{payload.symbol}' is already on your watchlist",
+        )
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error adding watchlist item: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while adding the symbol",
+        )
+
+    latest_sentiment = await _latest_sentiment_for_symbol(db, new_item.symbol)
+    return WatchlistItemOut(
+        symbol=new_item.symbol,
+        display_name=new_item.display_name,
+        added_at=new_item.created_at,
+        notes=new_item.notes,
+        latest_sentiment=latest_sentiment,
+    )
+
+
+@app.delete("/watchlist/{symbol}", status_code=status.HTTP_204_NO_CONTENT, tags=["Watchlist"])
+async def remove_from_watchlist(
+    symbol: str = Path(..., min_length=1, max_length=20),
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db_dependency),
+):
+    """Remove a symbol from the authenticated user's watchlist."""
+    symbol = symbol.upper()
+    result = await db.execute(
+        select(WatchlistItem).where(
+            WatchlistItem.user_id == current_user.id,
+            WatchlistItem.symbol == symbol,
+        )
+    )
+    item = result.scalars().first()
+    if item is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Symbol '{symbol}' not found on your watchlist",
+        )
+
+    try:
+        await db.delete(item)
+        await db.commit()
+        logger.info(f"Watchlist: user {current_user.id} removed {symbol}")
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error removing watchlist item: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while removing the symbol",
+        )
+
 
 # If this file is run directly, start the application
 if __name__ == "__main__":
