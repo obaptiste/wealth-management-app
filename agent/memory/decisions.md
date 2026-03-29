@@ -214,6 +214,36 @@ Impact:
 
 ---
 
+### [2026-03-29] Rank watchlist candidates before trimming dashboard panel items
+Context:
+The dashboard watchlist panel is intentionally limited to a few symbols, but the backend returns watchlist rows oldest-first. Trimming the raw response before ranking would hide newer or stronger signals once the watchlist grows past the panel limit.
+
+Decision:
+Build and rank signal items across the full watchlist first, then fetch sentiment history only for the selected top symbols and render those in the panel.
+
+Reason:
+This preserves the panel limit without making the oldest rows sticky forever, and it keeps the more expensive sentiment-history fetches constrained to the items that will actually be shown.
+
+Impact:
+`frontend/src/app/dashboard/data.ts` now uses a two-step watchlist flow: base ranking from the embedded sentiment on all rows, followed by history enrichment for only the chosen panel symbols.
+
+---
+
+### [2026-03-29] Treat backend watchlist sentiment scores as already normalized
+Context:
+The backend watchlist endpoint returns `latest_sentiment.score` in `[-1, 1]`, derived directly from FinBERT sentiment plus confidence. Reusing `normalizeSentimentResult()` on that payload would incorrectly remap non-negative scores as if they were raw probabilities.
+
+Decision:
+Add a dedicated embedded-watchlist sentiment normalization path in `frontend/src/services/watchlist-signals.ts` that preserves backend scores, normalizes confidence, and derives the frontend label from the preserved score.
+
+Reason:
+Watchlist endpoint payloads are not the same contract as raw model outputs. A dedicated adapter keeps the service-layer boundary explicit and prevents silent data corruption in the dashboard and watchlist page.
+
+Impact:
+Embedded watchlist sentiment now produces correct score direction and strength in both the dashboard panel and the `/watchlist` page, even before history enrichment is fetched.
+
+---
+
 ## Decision log format
 
 Use this format for future entries:

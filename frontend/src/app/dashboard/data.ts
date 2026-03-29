@@ -208,7 +208,15 @@ async function loadWatchlistPanelData(): Promise<DashboardData["watchlist"]> {
     return watchlist;
   }
 
-  const selectedItems = watchlist.items.slice(0, WATCHLIST_SIGNAL_LIMIT);
+  const topSymbols = new Set(
+    buildWatchlistSignalItems(watchlist.items)
+      .slice(0, WATCHLIST_SIGNAL_LIMIT)
+      .map((item) => item.symbol),
+  );
+
+  const selectedItems = watchlist.items.filter((item) =>
+    topSymbols.has(item.symbol?.trim().toUpperCase() ?? ""),
+  );
   const historyBySymbol = await loadWatchlistHistories(selectedItems);
 
   return {
