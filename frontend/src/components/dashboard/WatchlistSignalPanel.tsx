@@ -189,25 +189,6 @@ export function WatchlistSignalPanel({
   const emptyBg = useColorModeValue("gray.50", "gray.700");
   const mutedText = useColorModeValue("gray.600", "gray.300");
 
-  if (data.status === "error") {
-    return (
-      <ChakraCard>
-        <CardHeader>
-          <Heading size="md">Watchlist Signals</Heading>
-        </CardHeader>
-        <CardBody>
-          <Stack borderRadius="lg" bg={emptyBg} p={6} gap={2}>
-            <Text fontWeight="semibold">Unable to load watchlist</Text>
-            <Text color={mutedText}>
-              An error occurred while fetching watchlist data. Please try
-              refreshing the page.
-            </Text>
-          </Stack>
-        </CardBody>
-      </ChakraCard>
-    );
-  }
-
   if (data.status === "unavailable") {
     return (
       <ChakraCard>
