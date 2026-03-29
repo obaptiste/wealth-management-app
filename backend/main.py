@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import func
 from sqlalchemy.orm import selectinload
+from sqlalchemy.exc import IntegrityError
 from datetime import datetime, timedelta, timezone
 import yfinance as yf
 from functools import lru_cache
@@ -1900,6 +1901,12 @@ async def add_to_watchlist(
         await db.commit()
         await db.refresh(new_item)
         logger.info(f"Watchlist: user {current_user.id} added {payload.symbol}")
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Symbol '{payload.symbol}' is already on your watchlist",
+        )
     except Exception as e:
         await db.rollback()
         logger.error(f"Error adding watchlist item: {str(e)}")
@@ -1925,6 +1932,7 @@ async def remove_from_watchlist(
     db: AsyncSession = Depends(get_db_dependency),
 ):
     """Remove a symbol from the authenticated user's watchlist."""
+    symbol = symbol.upper()
     result = await db.execute(
         select(WatchlistItem).where(
             WatchlistItem.user_id == current_user.id,
