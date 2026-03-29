@@ -157,10 +157,13 @@ function sortWatchlistSignals(
     return rightScore - leftScore;
   }
 
-  const rightTimestamp = right.last_analyzed_at
-    ? Date.parse(right.last_analyzed_at)
-    : 0;
-  const leftTimestamp = left.last_analyzed_at ? Date.parse(left.last_analyzed_at) : 0;
+  const rightParsed = right.last_analyzed_at ? Date.parse(right.last_analyzed_at) : NaN;
+  const leftParsed = left.last_analyzed_at ? Date.parse(left.last_analyzed_at) : NaN;
+
+  // Coerce NaN (invalid/missing timestamps) to 0 so the comparator always
+  // returns a stable numeric value and sort ordering is well-defined.
+  const rightTimestamp = Number.isNaN(rightParsed) ? 0 : rightParsed;
+  const leftTimestamp = Number.isNaN(leftParsed) ? 0 : leftParsed;
 
   return rightTimestamp - leftTimestamp;
 }
