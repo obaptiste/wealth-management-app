@@ -133,7 +133,6 @@ export function DashboardSummaryCards({ data }: { data: DashboardData }) {
             data.summary.total_profit_loss >= 0 ? "green.500" : "red.500"
           }
         />
-
         <SummaryCard
           title="Assets"
           primary={String(data.asset_count)}
