@@ -1,5 +1,5 @@
 # schemas.py
-from pydantic import BaseModel, EmailStr, Field, validator, ConfigDict
+from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 import re
@@ -14,8 +14,9 @@ class UserCreate(UserBase):
     """Schema for creating a new user."""
     password: str = Field(..., min_length=8)
     
-    @validator('password')
-    def password_strength(cls, v):
+    @field_validator('password')
+    @classmethod
+    def password_strength(cls, v: str) -> str:
         """Validate password strength."""
         if not re.search(r'[A-Z]', v):
             raise ValueError('Password must contain at least one uppercase letter')
@@ -277,3 +278,38 @@ class PensionCalculationResponse(BaseModel):
     projected_value: float
     monthly_retirement_income: float  # Assuming 4% withdrawal rate
     projections: List[PensionProjection]
+
+
+# Watchlist schemas
+
+class WatchlistItemSentiment(BaseModel):
+    """Latest sentiment snapshot attached to a watchlist item."""
+    symbol: str
+    # score is derived: positive → +confidence, negative → -confidence, neutral → 0.0
+    score: float
+    # Raw FinBERT label: "positive" | "negative" | "neutral"
+    label: str
+    confidence: float
+    # source_text from the SentimentResult row, or "sentiment_model" if null
+    source: str
+    analyzed_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class WatchlistItemCreate(BaseModel):
+    """Schema for adding a symbol to the watchlist."""
+    symbol: str = Field(..., min_length=1, max_length=20, pattern=r'^[A-Z0-9.]{1,20}$')
+    display_name: Optional[str] = Field(None, max_length=100)
+    notes: Optional[str] = None
+
+
+class WatchlistItemOut(BaseModel):
+    """Schema for a watchlist item returned to clients."""
+    symbol: str
+    display_name: Optional[str] = None
+    added_at: datetime
+    notes: Optional[str] = None
+    latest_sentiment: Optional[WatchlistItemSentiment] = None
+
+    model_config = ConfigDict(from_attributes=True)

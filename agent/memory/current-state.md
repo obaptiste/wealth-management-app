@@ -196,8 +196,21 @@ A reviewer pass on task-006/task-007 identified four bugs. All are now fixed:
 
 ---
 
+### 19. Watchlist backend domain added (task-008, 2026-03-29)
+
+- Added `WatchlistItem` ORM model to `backend/models.py` with `user_id`, `symbol`, `display_name`, `notes`, and `created_at`/`updated_at` via `TimestampMixin`. Unique index on `(user_id, symbol)` prevents duplicate entries.
+- Added `WatchlistItemCreate`, `WatchlistItemOut`, and `WatchlistItemSentiment` Pydantic schemas to `backend/schemas.py`. `WatchlistItemSentiment` derives a `[-1, 1]` score from the raw FinBERT `sentiment` + `confidence` columns.
+- Fixed `schemas.py` bug: migrated `UserCreate.password_strength` from `@validator` (Pydantic v1) to `@field_validator` + `@classmethod` (Pydantic v2).
+- Added three endpoints to `backend/main.py`:
+  - `GET /watchlist` — returns all items for the authenticated user, each enriched with the most recent `SentimentResult` for that symbol.
+  - `POST /watchlist` — adds a symbol; returns 409 if already present.
+  - `DELETE /watchlist/{symbol}` — removes a symbol; returns 404 if not found.
+- Added Alembic migration `add_watchlist_items.py` (revision `a1b2c3d4e5f6`, down_revision `f9d3e2c1a8b4`).
+- Frontend `/watchlist` page and API client methods remain to be built (task-008 frontend phase).
+
 ## Likely priorities (updated)
 
 1. Merge the backend watchlist branch and verify the end-to-end dashboard watchlist flow
-2. Establish historical snapshot plan (task-010)
-3. Review the frontend auth flow against the backend runtime contract beyond compile-time alignment
+2. Add watchlist frontend: `/watchlist` page + `apiClient.getWatchlist()` / `addToWatchlist()` / `removeFromWatchlist()` methods
+3. Establish historical snapshot plan (task-010)
+4. Review the frontend auth flow against the backend runtime contract beyond compile-time alignment

@@ -3,6 +3,7 @@
 ## Immediate next steps
 
 - Merge and validate the backend watchlist branch against the new dashboard watchlist panel
+- Build the watchlist frontend: add `getWatchlist()`, `addToWatchlist()`, `removeFromWatchlist()` to `frontend/src/lib/api.ts`; add a `/watchlist` page that calls those methods
 - Review the runtime auth flow end-to-end now that the compile/build contract is aligned with `/auth/token` and `/auth/me`
 - Establish the historical snapshot plan so portfolio and sentiment charts can evolve beyond the current 7-day loader path
 
