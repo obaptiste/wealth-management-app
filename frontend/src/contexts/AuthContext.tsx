@@ -1,9 +1,15 @@
 // contexts/AuthContext.tsx
-import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
-import apiClient from '@/lib/api';
-import type { User } from '@/types/api';
-import type { AuthContextType } from '@/types/auth';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+import { useRouter } from "next/navigation";
+import apiClient from "@/lib/api";
+import type { User } from "@/types/api";
+import type { AuthContextType } from "@/types/auth";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -16,13 +22,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        if (typeof window !== 'undefined' && localStorage.getItem('token')) {
+        if (typeof window !== "undefined" && localStorage.getItem("token")) {
           const userData = await apiClient.getCurrentUser();
           setUser(userData);
         }
       } catch (err) {
-        console.error('Error checking auth:', err);
-        localStorage.removeItem('token');
+        console.error("Error checking auth:", err);
+        localStorage.removeItem("token");
       } finally {
         setLoading(false);
       }
@@ -37,21 +43,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
 
       const response = await apiClient.login(email, password);
-      localStorage.setItem('token', response.access_token);
+      localStorage.setItem("token", response.access_token);
 
       const userData = await apiClient.getCurrentUser();
       setUser(userData);
 
-      router.push('/dashboard');
+      router.push("/dashboard");
     } catch (err: unknown) {
       if (err instanceof Error) {
-        if (err.message.includes('credentials')) {
-          setError('Invalid email or password');
+        if (err.message.includes("credentials")) {
+          setError("Invalid email or password");
         } else {
           setError(err.message);
         }
       } else {
-        setError('Login failed. Please try again.');
+        setError("Login failed. Please try again.");
       }
       throw err;
     } finally {
@@ -60,26 +66,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
     setUser(null);
-    router.push('/login');
+    router.push("/login");
   };
 
-  const register = async (username: string, email: string, password: string) => {
+  const register = async (
+    username: string,
+    email: string,
+    password: string,
+  ) => {
     try {
       setError(null);
 
       await apiClient.register(username, email, password);
       await login(email, password);
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Registration failed';
+      const errorMessage =
+        err instanceof Error ? err.message : "Registration failed";
       setError(errorMessage);
       throw err;
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, logout, register }}>
+    <AuthContext.Provider
+      value={{ user, loading, error, login, logout, register }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -88,7 +101,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

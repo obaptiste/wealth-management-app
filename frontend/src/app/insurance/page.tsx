@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Box,
   Container,
@@ -26,16 +26,16 @@ import {
   FormLabel,
   SimpleGrid,
   Divider,
-} from '@chakra-ui/react';
-import { motion, AnimatePresence } from 'framer-motion';
+} from "@chakra-ui/react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   TbShield,
   TbHeartbeat,
   TbUsers,
   TbTrendingUp,
   TbCoin,
-} from 'react-icons/tb';
-import { apiClient } from '@/lib/api';
+} from "react-icons/tb";
+import { apiClient } from "@/lib/api";
 
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
@@ -58,26 +58,26 @@ interface Recommendation {
 }
 
 export default function InsurancePage() {
-  const [age, setAge] = useState('30');
-  const [income, setIncome] = useState('60000');
-  const [dependents, setDependents] = useState('1');
+  const [age, setAge] = useState("30");
+  const [income, setIncome] = useState("60000");
+  const [dependents, setDependents] = useState("1");
   const [hasHealthInsurance, setHasHealthInsurance] = useState(false);
   const [hasLifeInsurance, setHasLifeInsurance] = useState(false);
-  const [riskTolerance, setRiskTolerance] = useState('medium');
+  const [riskTolerance, setRiskTolerance] = useState("medium");
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalCoverage, setTotalCoverage] = useState(0);
   const [totalPremium, setTotalPremium] = useState(0);
 
   const bgGradient = useColorModeValue(
-    'linear(to-br, brand.50, slate.100, accent.50)',
-    'linear(to-br, slate.900, brand.900, slate.800)'
+    "linear(to-br, brand.50, slate.100, accent.50)",
+    "linear(to-br, slate.900, brand.900, slate.800)",
   );
 
-  const cardBg = useColorModeValue('white', 'slate.800');
-  const accentColor = useColorModeValue('brand.500', 'brand.400');
-  const summaryBg = useColorModeValue('brand.50', 'brand.900');
-  const recommendationBg = useColorModeValue('slate.50', 'slate.700');
+  const cardBg = useColorModeValue("white", "slate.800");
+  const accentColor = useColorModeValue("brand.500", "brand.400");
+  const summaryBg = useColorModeValue("brand.50", "brand.900");
+  const recommendationBg = useColorModeValue("slate.50", "slate.700");
 
   const getRecommendations = async () => {
     setLoading(true);
@@ -88,13 +88,13 @@ export default function InsurancePage() {
         dependents: parseInt(dependents),
         hasHealthInsurance: hasHealthInsurance,
         hasLifeInsurance: hasLifeInsurance,
-        riskTolerance: riskTolerance as 'low' | 'medium' | 'high',
+        riskTolerance: riskTolerance as "low" | "medium" | "high",
       });
       setRecommendations(response.recommendations);
       setTotalCoverage(response.total_recommended_coverage);
       setTotalPremium(response.total_monthly_premium);
     } catch (error) {
-      console.error('Error fetching recommendations:', error);
+      console.error("Error fetching recommendations:", error);
     } finally {
       setLoading(false);
     }
@@ -102,11 +102,11 @@ export default function InsurancePage() {
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'life':
+      case "life":
         return TbShield;
-      case 'health':
+      case "health":
         return TbHeartbeat;
-      case 'disability':
+      case "disability":
         return TbUsers;
       default:
         return TbShield;
@@ -115,14 +115,14 @@ export default function InsurancePage() {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'life':
-        return 'brand';
-      case 'health':
-        return 'accent';
-      case 'disability':
-        return 'blue';
+      case "life":
+        return "brand";
+      case "health":
+        return "accent";
+      case "disability":
+        return "blue";
       default:
-        return 'gray';
+        return "gray";
     }
   };
 
@@ -153,7 +153,7 @@ export default function InsurancePage() {
           </VStack>
         </MotionBox>
 
-        <Grid templateColumns={{ base: '1fr', lg: '1fr 2fr' }} gap={6}>
+        <Grid templateColumns={{ base: "1fr", lg: "1fr 2fr" }} gap={6}>
           {/* Input Form */}
           <GridItem>
             <MotionCard
@@ -212,7 +212,11 @@ export default function InsurancePage() {
 
                   <Divider />
 
-                  <FormControl display="flex" alignItems="center" justifyContent="space-between">
+                  <FormControl
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="space-between"
+                  >
                     <FormLabel mb={0} fontWeight="600">
                       Have Health Insurance?
                     </FormLabel>
@@ -223,7 +227,11 @@ export default function InsurancePage() {
                     />
                   </FormControl>
 
-                  <FormControl display="flex" alignItems="center" justifyContent="space-between">
+                  <FormControl
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="space-between"
+                  >
                     <FormLabel mb={0} fontWeight="600">
                       Have Life Insurance?
                     </FormLabel>
@@ -256,18 +264,34 @@ export default function InsurancePage() {
                     >
                       <VStack spacing={2} align="stretch">
                         <HStack justify="space-between">
-                          <Text fontSize="sm" fontWeight="600" color="text-muted">
+                          <Text
+                            fontSize="sm"
+                            fontWeight="600"
+                            color="text-muted"
+                          >
                             Total Coverage
                           </Text>
-                          <Text fontSize="lg" fontWeight="700" color={accentColor}>
+                          <Text
+                            fontSize="lg"
+                            fontWeight="700"
+                            color={accentColor}
+                          >
                             ${totalCoverage.toLocaleString()}
                           </Text>
                         </HStack>
                         <HStack justify="space-between">
-                          <Text fontSize="sm" fontWeight="600" color="text-muted">
+                          <Text
+                            fontSize="sm"
+                            fontWeight="600"
+                            color="text-muted"
+                          >
                             Monthly Premium
                           </Text>
-                          <Text fontSize="lg" fontWeight="700" color={accentColor}>
+                          <Text
+                            fontSize="lg"
+                            fontWeight="700"
+                            color={accentColor}
+                          >
                             ${totalPremium.toLocaleString()}
                           </Text>
                         </HStack>
@@ -295,7 +319,8 @@ export default function InsurancePage() {
                   <VStack spacing={4}>
                     <Icon as={TbShield} boxSize={20} color="text-muted" />
                     <Text fontSize="xl" color="text-muted" textAlign="center">
-                      Fill in your information to get personalized recommendations
+                      Fill in your information to get personalized
+                      recommendations
                     </Text>
                   </VStack>
                 </MotionBox>
@@ -311,7 +336,9 @@ export default function InsurancePage() {
                         transition={{ duration: 0.4, delay: index * 0.1 }}
                         bg={cardBg}
                         borderWidth="2px"
-                        borderColor={rec.score >= 80 ? accentColor : 'border-primary'}
+                        borderColor={
+                          rec.score >= 80 ? accentColor : "border-primary"
+                        }
                         shadow="xl"
                       >
                         <CardBody p={6}>
@@ -324,27 +351,42 @@ export default function InsurancePage() {
                                   color={`${getTypeColor(rec.product.type)}.500`}
                                 />
                                 <VStack align="start" spacing={0}>
-                                  <Heading size="md">{rec.product.name}</Heading>
-                                  <Badge colorScheme={getTypeColor(rec.product.type)}>
+                                  <Heading size="md">
+                                    {rec.product.name}
+                                  </Heading>
+                                  <Badge
+                                    colorScheme={getTypeColor(rec.product.type)}
+                                  >
                                     {rec.product.type}
                                   </Badge>
                                 </VStack>
                               </HStack>
                               {rec.score >= 80 && (
-                                <Badge colorScheme="brand" fontSize="md" px={3} py={1}>
+                                <Badge
+                                  colorScheme="brand"
+                                  fontSize="md"
+                                  px={3}
+                                  py={1}
+                                >
                                   Top Pick
                                 </Badge>
                               )}
                             </Flex>
 
-                            <Text color="text-secondary">{rec.product.description}</Text>
+                            <Text color="text-secondary">
+                              {rec.product.description}
+                            </Text>
 
                             <Box>
                               <Flex justify="space-between" mb={2}>
                                 <Text fontSize="sm" fontWeight="600">
                                   Match Score
                                 </Text>
-                                <Text fontSize="sm" fontWeight="700" color={accentColor}>
+                                <Text
+                                  fontSize="sm"
+                                  fontWeight="700"
+                                  color={accentColor}
+                                >
                                   {rec.score}%
                                 </Text>
                               </Flex>
@@ -356,11 +398,7 @@ export default function InsurancePage() {
                               />
                             </Box>
 
-                            <Box
-                              p={4}
-                              borderRadius="lg"
-                              bg={recommendationBg}
-                            >
+                            <Box p={4} borderRadius="lg" bg={recommendationBg}>
                               <Text fontSize="sm" color="text-secondary">
                                 {rec.reason}
                               </Text>
@@ -373,7 +411,11 @@ export default function InsurancePage() {
                                 </Text>
                                 <HStack spacing={1}>
                                   <Icon as={TbCoin} color="accent.500" />
-                                  <Text fontSize="2xl" fontWeight="700" color={accentColor}>
+                                  <Text
+                                    fontSize="2xl"
+                                    fontWeight="700"
+                                    color={accentColor}
+                                  >
                                     ${rec.product.monthly_premium}
                                   </Text>
                                 </HStack>
@@ -385,8 +427,16 @@ export default function InsurancePage() {
                                 </Text>
                                 <HStack spacing={1}>
                                   <Icon as={TbTrendingUp} color="brand.500" />
-                                  <Text fontSize="2xl" fontWeight="700" color="brand.500">
-                                    ${(rec.product.coverage_amount / 1000).toFixed(0)}K
+                                  <Text
+                                    fontSize="2xl"
+                                    fontWeight="700"
+                                    color="brand.500"
+                                  >
+                                    $
+                                    {(
+                                      rec.product.coverage_amount / 1000
+                                    ).toFixed(0)}
+                                    K
                                   </Text>
                                 </HStack>
                               </VStack>

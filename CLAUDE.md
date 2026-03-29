@@ -1,9 +1,11 @@
 # Wealth App Project Instructions
 
 ## Project purpose
+
 This project is a wealth management app focused on portfolio visibility, sentiment-informed analysis, watchlists, and clear data visualization.
 
 ## Primary stack
+
 - Next.js
 - TypeScript
 - React
@@ -11,6 +13,7 @@ This project is a wealth management app focused on portfolio visibility, sentime
 - SQLAlchemy + Alembic (backend ORM and migrations)
 
 ## Working principles
+
 - Prefer small, safe, incremental changes
 - Keep code readable and well-commented
 - Avoid unnecessary abstraction
@@ -23,7 +26,9 @@ This project is a wealth management app focused on portfolio visibility, sentime
 - Surface risks clearly instead of hiding uncertainty
 
 ## Definition of done
+
 A task is only complete when:
+
 1. The requested behavior is implemented
 2. Types are consistent
 3. Relevant build or verification steps have been run
@@ -32,6 +37,7 @@ A task is only complete when:
 6. Next steps are suggested if work remains
 
 ## Coding style
+
 - Use explicit TypeScript types where they improve clarity
 - Keep functions small and focused
 - Prefer descriptive names over clever names
@@ -39,6 +45,7 @@ A task is only complete when:
 - Reuse existing utilities before introducing new ones
 
 ## Guardrails
+
 - Do not invent market or portfolio data
 - Do not fake successful API responses
 - Do not mark tasks done without verification

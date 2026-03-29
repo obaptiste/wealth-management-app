@@ -1,26 +1,53 @@
-import Image from "next/image";
+interface ImagePlaceholderProps {
+  label: string;
+  size: "sm" | "md";
+}
+
+function ImagePlaceholder({ label, size }: ImagePlaceholderProps) {
+  const classes =
+    size === "md"
+      ? "h-5 w-5 rounded-md text-[7px]"
+      : "h-4 w-4 rounded text-[6px]";
+
+  return (
+    <span
+      aria-hidden="true"
+      className={`inline-flex shrink-0 items-center justify-center border border-dashed border-current/40 bg-current/5 font-semibold uppercase tracking-[0.08em] ${classes}`}
+      title={`${label} placeholder`}
+    >
+      Img
+    </span>
+  );
+}
 
 export default function Home() {
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
         <h1 className="text-3xl font-bold">OpenBank Wealth Management</h1>
-        
+
         <div className="max-w-2xl">
           <p className="text-lg mb-4">
-            Welcome to your personalized wealth management dashboard. Monitor your investments, 
-            track your portfolio performance, and plan your financial future.
+            Welcome to your personalized wealth management dashboard. Monitor
+            your investments, track your portfolio performance, and plan your
+            financial future.
           </p>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 my-8">
             <div className="p-6 border rounded-lg shadow-sm">
               <h2 className="text-xl font-semibold mb-2">Portfolio Tracking</h2>
-              <p>View all your investments in one place with real-time updates and performance metrics.</p>
+              <p>
+                View all your investments in one place with real-time updates
+                and performance metrics.
+              </p>
             </div>
-            
+
             <div className="p-6 border rounded-lg shadow-sm">
               <h2 className="text-xl font-semibold mb-2">Financial Planning</h2>
-              <p>Set goals, create retirement plans, and receive personalized financial advice.</p>
+              <p>
+                Set goals, create retirement plans, and receive personalized
+                financial advice.
+              </p>
             </div>
           </div>
         </div>
@@ -30,12 +57,7 @@ export default function Home() {
             className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
             href="/dashboard"
           >
-            <Image
-              src="/dashboard-icon.svg"
-              alt="Dashboard icon"
-              width={20}
-              height={20}
-            />
+            <ImagePlaceholder label="Dashboard icon" size="md" />
             View Dashboard
           </a>
           <a
@@ -51,39 +73,21 @@ export default function Home() {
           className="flex items-center gap-2 hover:underline hover:underline-offset-4"
           href="/financial-education"
         >
-          <Image
-            aria-hidden
-            src="/education-icon.svg"
-            alt="Education icon"
-            width={16}
-            height={16}
-          />
+          <ImagePlaceholder label="Education icon" size="sm" />
           Financial Education
         </a>
         <a
           className="flex items-center gap-2 hover:underline hover:underline-offset-4"
           href="/support"
         >
-          <Image
-            aria-hidden
-            src="/support-icon.svg"
-            alt="Support icon"
-            width={16}
-            height={16}
-          />
+          <ImagePlaceholder label="Support icon" size="sm" />
           Support
         </a>
         <a
           className="flex items-center gap-2 hover:underline hover:underline-offset-4"
           href="/contact"
         >
-          <Image
-            aria-hidden
-            src="/contact-icon.svg"
-            alt="Contact icon"
-            width={16}
-            height={16}
-          />
+          <ImagePlaceholder label="Contact icon" size="sm" />
           Contact an Advisor →
         </a>
       </footer>

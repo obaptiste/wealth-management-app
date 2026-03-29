@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Box,
   Container,
@@ -20,10 +20,15 @@ import {
   Flex,
   Badge,
   SimpleGrid,
-} from '@chakra-ui/react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { TbArrowsExchange, TbTrendingUp, TbCurrencyDollar, TbRefresh } from 'react-icons/tb';
-import { apiClient } from '@/lib/api';
+} from "@chakra-ui/react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  TbArrowsExchange,
+  TbTrendingUp,
+  TbCurrencyDollar,
+  TbRefresh,
+} from "react-icons/tb";
+import { apiClient } from "@/lib/api";
 
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
@@ -44,29 +49,31 @@ interface ConversionResult {
 }
 
 export default function CurrencyConversionPage() {
-  const [fromCurrency, setFromCurrency] = useState('USD');
-  const [toCurrency, setToCurrency] = useState('EUR');
-  const [amount, setAmount] = useState('1000');
+  const [fromCurrency, setFromCurrency] = useState("USD");
+  const [toCurrency, setToCurrency] = useState("EUR");
+  const [amount, setAmount] = useState("1000");
   const [result, setResult] = useState<ConversionResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [rates, setRates] = useState<Record<string, number>>({});
-  const [supportedCurrencies, setSupportedCurrencies] = useState<Record<string, string>>({});
+  const [supportedCurrencies, setSupportedCurrencies] = useState<
+    Record<string, string>
+  >({});
 
   const bgGradient = useColorModeValue(
-    'linear(to-br, brand.50, accent.50, slate.100)',
-    'linear(to-br, slate.900, slate.800, brand.900)'
+    "linear(to-br, brand.50, accent.50, slate.100)",
+    "linear(to-br, slate.900, slate.800, brand.900)",
   );
 
-  const cardBg = useColorModeValue('white', 'slate.800');
-  const accentColor = useColorModeValue('brand.500', 'brand.400');
-  const resultBg = useColorModeValue('brand.50', 'brand.900');
+  const cardBg = useColorModeValue("white", "slate.800");
+  const accentColor = useColorModeValue("brand.500", "brand.400");
+  const resultBg = useColorModeValue("brand.50", "brand.900");
 
   const fetchSupportedCurrencies = useCallback(async () => {
     try {
       const response = await apiClient.getSupportedCurrencies();
       setSupportedCurrencies(response.currencies);
     } catch (error) {
-      console.error('Error fetching supported currencies:', error);
+      console.error("Error fetching supported currencies:", error);
     }
   }, []);
 
@@ -75,7 +82,7 @@ export default function CurrencyConversionPage() {
       const response = await apiClient.getExchangeRates(fromCurrency);
       setRates(response.rates);
     } catch (error) {
-      console.error('Error fetching exchange rates:', error);
+      console.error("Error fetching exchange rates:", error);
     }
   }, [fromCurrency]);
 
@@ -95,11 +102,11 @@ export default function CurrencyConversionPage() {
       const response = await apiClient.convertCurrency(
         fromCurrency,
         toCurrency,
-        parseFloat(amount)
+        parseFloat(amount),
       );
       setResult(response);
     } catch (error) {
-      console.error('Error converting currency:', error);
+      console.error("Error converting currency:", error);
     } finally {
       setLoading(false);
     }
@@ -112,7 +119,9 @@ export default function CurrencyConversionPage() {
   };
 
   const topRates: ExchangeRate[] = Object.entries(rates)
-    .filter(([currency]) => ['EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD'].includes(currency))
+    .filter(([currency]) =>
+      ["EUR", "GBP", "JPY", "CHF", "CAD", "AUD"].includes(currency),
+    )
     .map(([currency, rate]) => ({
       currency,
       rate,
@@ -147,7 +156,7 @@ export default function CurrencyConversionPage() {
           </VStack>
         </MotionBox>
 
-        <Grid templateColumns={{ base: '1fr', lg: '2fr 1fr' }} gap={6}>
+        <Grid templateColumns={{ base: "1fr", lg: "2fr 1fr" }} gap={6}>
           {/* Main Conversion Card */}
           <GridItem>
             <MotionCard
@@ -191,11 +200,13 @@ export default function CurrencyConversionPage() {
                         }}
                         size="lg"
                       >
-                        {Object.entries(supportedCurrencies).map(([code, name]) => (
-                          <option key={code} value={code}>
-                            {code} - {name}
-                          </option>
-                        ))}
+                        {Object.entries(supportedCurrencies).map(
+                          ([code, name]) => (
+                            <option key={code} value={code}>
+                              {code} - {name}
+                            </option>
+                          ),
+                        )}
                       </Select>
                     </Box>
 
@@ -206,7 +217,10 @@ export default function CurrencyConversionPage() {
                       mt={8}
                       borderRadius="full"
                       p={2}
-                      _hover={{ transform: 'rotate(180deg)', transition: 'transform 0.3s' }}
+                      _hover={{
+                        transform: "rotate(180deg)",
+                        transition: "transform 0.3s",
+                      }}
                     >
                       <Icon as={TbArrowsExchange} boxSize={6} />
                     </Button>
@@ -220,11 +234,13 @@ export default function CurrencyConversionPage() {
                         onChange={(e) => setToCurrency(e.target.value)}
                         size="lg"
                       >
-                        {Object.entries(supportedCurrencies).map(([code, name]) => (
-                          <option key={code} value={code}>
-                            {code} - {name}
-                          </option>
-                        ))}
+                        {Object.entries(supportedCurrencies).map(
+                          ([code, name]) => (
+                            <option key={code} value={code}>
+                              {code} - {name}
+                            </option>
+                          ),
+                        )}
                       </Select>
                     </Box>
                   </HStack>
@@ -259,7 +275,11 @@ export default function CurrencyConversionPage() {
                       >
                         <VStack spacing={4} align="stretch">
                           <Flex justify="space-between" align="center">
-                            <Text fontSize="sm" color="text-muted" fontWeight="600">
+                            <Text
+                              fontSize="sm"
+                              color="text-muted"
+                              fontWeight="600"
+                            >
                               Converted Amount
                             </Text>
                             <Badge colorScheme="brand" fontSize="xs">
@@ -270,13 +290,14 @@ export default function CurrencyConversionPage() {
                             {result.converted_amount.toLocaleString(undefined, {
                               minimumFractionDigits: 2,
                               maximumFractionDigits: 2,
-                            })}{' '}
+                            })}{" "}
                             <Text as="span" fontSize="xl">
                               {result.to_currency}
                             </Text>
                           </Heading>
                           <Text fontSize="sm" color="text-secondary">
-                            1 {result.from_currency} = {result.exchange_rate.toFixed(4)}{' '}
+                            1 {result.from_currency} ={" "}
+                            {result.exchange_rate.toFixed(4)}{" "}
                             {result.to_currency}
                           </Text>
                         </VStack>
@@ -318,7 +339,7 @@ export default function CurrencyConversionPage() {
                       transition={{ duration: 0.4, delay: 0.3 + index * 0.05 }}
                       bg={cardBg}
                       _hover={{
-                        transform: 'translateX(4px)',
+                        transform: "translateX(4px)",
                         borderColor: accentColor,
                       }}
                       borderWidth="1px"
@@ -339,7 +360,11 @@ export default function CurrencyConversionPage() {
                               {rate.rate.toFixed(4)}
                             </Text>
                             <HStack spacing={1}>
-                              <Icon as={TbTrendingUp} boxSize={3} color="success.500" />
+                              <Icon
+                                as={TbTrendingUp}
+                                boxSize={3}
+                                color="success.500"
+                              />
                               <Text fontSize="xs" color="success.500">
                                 0.2%
                               </Text>

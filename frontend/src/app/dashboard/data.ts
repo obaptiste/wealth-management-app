@@ -1,27 +1,31 @@
-import apiClient from '@/lib/api';
-import { summarizePortfolio } from '@/services/portfolio-summary';
-import { buildSentimentTrendPoints, type RawSentimentHistory } from '@/services/sentiment-trend';
-import type { SentimentChartPoint } from '@/types/chart';
+import apiClient from "@/lib/api";
+import { summarizePortfolio } from "@/services/portfolio-summary";
+import {
+  buildSentimentTrendPoints,
+  type RawSentimentHistory,
+} from "@/services/sentiment-trend";
+import type { AssetWithPerformance } from "@/types/assets";
+import type { SentimentChartPoint } from "@/types/chart";
 import type {
   PortfolioAllocationSlice,
   PortfolioSummaryResult,
   SentimentLabel,
   SentimentResult,
-} from '@/types/domain';
-import type { Portfolio, PortfolioWithSummary } from '@/types/portfolios';
+} from "@/types/domain";
+import type { Portfolio, PortfolioWithSummary } from "@/types/portfolios";
 
 export interface DashboardPortfolioSnapshot {
   id: number;
   name: string;
   asset_count: number;
-  summary: PortfolioSummaryResult['summary'];
+  summary: PortfolioSummaryResult["summary"];
 }
 
 export interface DashboardData {
   portfolio_count: number;
   asset_count: number;
-  summary: PortfolioSummaryResult['summary'];
-  metrics: PortfolioSummaryResult['metrics'];
+  summary: PortfolioSummaryResult["summary"];
+  metrics: PortfolioSummaryResult["metrics"];
   top_allocations: PortfolioAllocationSlice[];
   portfolios: DashboardPortfolioSnapshot[];
   primary_sentiment: SentimentResult | null;
@@ -31,11 +35,11 @@ export interface DashboardData {
 // Maps a net sentiment score in [-1, 1] to a domain label without going through
 // normalizeSentimentScore, which assumes [0, 1] inputs are raw model probabilities.
 function scoreToSentimentLabel(score: number): SentimentLabel {
-  if (score >= 0.5) return 'very_bullish';
-  if (score >= 0.1) return 'bullish';
-  if (score > -0.1) return 'neutral';
-  if (score > -0.5) return 'bearish';
-  return 'very_bearish';
+  if (score >= 0.5) return "very_bullish";
+  if (score >= 0.1) return "bullish";
+  if (score > -0.1) return "neutral";
+  if (score > -0.5) return "bearish";
+  return "very_bearish";
 }
 
 // Net sentiment score in [-1, 1] derived from percentage breakdown.
@@ -45,9 +49,11 @@ function toNetSentimentScore(positive: number, negative: number): number {
 
 // Fetches sentiment history once so both primary signal and trend can be derived
 // from a single API call. Returns null on failure so callers can degrade gracefully.
-async function loadSentimentHistory(symbol: string): Promise<RawSentimentHistory | null> {
+async function loadSentimentHistory(
+  symbol: string,
+): Promise<RawSentimentHistory | null> {
   try {
-    return await apiClient.getSentimentHistory(symbol, 7) as RawSentimentHistory;
+    return (await apiClient.getSentimentHistory(symbol, 7)) as RawSentimentHistory;
   } catch (error) {
     console.warn(`Dashboard sentiment history unavailable for ${symbol}`, error);
     return null;
@@ -57,7 +63,9 @@ async function loadSentimentHistory(symbol: string): Promise<RawSentimentHistory
 // Derives the primary sentiment signal from the most recent trend entry. Constructs
 // a SentimentResult directly so the already-normalized net score is not re-processed
 // by normalizeSentimentScore (which assumes [0,1] raw model probabilities as input).
-function derivePrimarySentiment(history: RawSentimentHistory | null): SentimentResult | null {
+function derivePrimarySentiment(
+  history: RawSentimentHistory | null,
+): SentimentResult | null {
   if (!history) {
     return null;
   }
@@ -69,19 +77,24 @@ function derivePrimarySentiment(history: RawSentimentHistory | null): SentimentR
     return null;
   }
 
-  const score = toNetSentimentScore(latestTrend.positive ?? 0, latestTrend.negative ?? 0);
+  const score = toNetSentimentScore(
+    latestTrend.positive ?? 0,
+    latestTrend.negative ?? 0,
+  );
 
   return {
-    symbol: (history.symbol ?? 'UNKNOWN').toUpperCase(),
+    symbol: (history.symbol ?? "UNKNOWN").toUpperCase(),
     score,
     label: scoreToSentimentLabel(score),
     confidence: null,
-    source: 'sentiment_history',
+    source: "sentiment_history",
     analyzed_at: new Date(`${latestTrend.date}T00:00:00Z`).toISOString(),
   };
 }
 
-function deriveSentimentTrend(history: RawSentimentHistory | null): SentimentChartPoint[] {
+function deriveSentimentTrend(
+  history: RawSentimentHistory | null,
+): SentimentChartPoint[] {
   if (!history) {
     return [];
   }
@@ -89,11 +102,15 @@ function deriveSentimentTrend(history: RawSentimentHistory | null): SentimentCha
   return buildSentimentTrendPoints(history);
 }
 
-function flattenPortfolioAssets(portfolios: PortfolioWithSummary[]) {
+function flattenPortfolioAssets(
+  portfolios: PortfolioWithSummary[],
+): AssetWithPerformance[] {
   return portfolios.flatMap((portfolio) => portfolio.assets);
 }
 
-function buildPortfolioSnapshots(portfolios: PortfolioWithSummary[]): DashboardPortfolioSnapshot[] {
+function buildPortfolioSnapshots(
+  portfolios: PortfolioWithSummary[],
+): DashboardPortfolioSnapshot[] {
   return portfolios.map((portfolio) => {
     const result = summarizePortfolio(portfolio.assets);
 
@@ -107,14 +124,19 @@ function buildPortfolioSnapshots(portfolios: PortfolioWithSummary[]): DashboardP
 }
 
 async function loadPortfolioDetails(): Promise<PortfolioWithSummary[]> {
-  const portfolios = await apiClient.getPortfolios() as Portfolio[];
+  const portfolios = (await apiClient.getPortfolios()) as Portfolio[];
 
   if (portfolios.length === 0) {
     return [];
   }
 
   return Promise.all(
-    portfolios.map((portfolio) => apiClient.getPortfolio(String(portfolio.id)) as Promise<PortfolioWithSummary>),
+    portfolios.map(
+      (portfolio) =>
+        apiClient.getPortfolio(
+          String(portfolio.id),
+        ) as Promise<PortfolioWithSummary>,
+    ),
   );
 }
 

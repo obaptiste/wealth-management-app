@@ -1,5 +1,5 @@
 // frontend/src/types/components.ts
-import { ReactNode } from 'react';
+import { ReactNode } from "react";
 
 export interface ProvidersProps {
   children: ReactNode;

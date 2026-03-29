@@ -1,4 +1,3 @@
-
 export interface ThemeContextType {
   theme: string | undefined;
   setTheme: (theme: string) => void;
@@ -6,13 +5,12 @@ export interface ThemeContextType {
   isDark: boolean;
   isLight: boolean;
   colorMode: string;
-  setColorMode: (colorMode: 'light' | 'dark') => void;
+  setColorMode: (colorMode: "light" | "dark") => void;
   toggleTheme: () => void;
 }
 
 export interface ChakraProviderProps {
   theme: {
-    
     // Add other theme properties as needed
     theme?: string | undefined;
     setTheme?: (theme: string) => void;

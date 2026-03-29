@@ -1,4 +1,4 @@
-import type { SentimentChartPoint } from '@/types/chart';
+import type { SentimentChartPoint } from "@/types/chart";
 
 export interface RawSentimentTrendPoint {
   date?: string | null;
@@ -15,7 +15,7 @@ export interface RawSentimentHistory {
 }
 
 function isFiniteNumber(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value);
+  return typeof value === "number" && Number.isFinite(value);
 }
 
 function clampPercentage(value: unknown): number {
@@ -51,7 +51,9 @@ function toSentimentScore(positive: number, negative: number): number {
   return (positive - negative) / 100;
 }
 
-export function buildSentimentTrendPoints(history: RawSentimentHistory): SentimentChartPoint[] {
+export function buildSentimentTrendPoints(
+  history: RawSentimentHistory,
+): SentimentChartPoint[] {
   const rawPoints = history.sentiment_trends ?? [];
 
   return rawPoints

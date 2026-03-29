@@ -2,8 +2,8 @@ import type {
   PortfolioAllocationSlice,
   PortfolioGainLossMetrics,
   PortfolioSummaryResult,
-} from '@/types/domain';
-import type { PortfolioSummary } from '@/types/portfolios';
+} from "@/types/domain";
+import type { PortfolioSummary } from "@/types/portfolios";
 
 export interface PortfolioAssetInput {
   symbol?: string | null;
@@ -28,7 +28,7 @@ interface NormalizedAssetPosition {
 }
 
 function isFiniteNumber(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value);
+  return typeof value === "number" && Number.isFinite(value);
 }
 
 function toNonNegativeNumber(value: unknown): number {
@@ -59,20 +59,25 @@ function buildSummary(
     total_value: totalValue,
     total_cost: totalCost,
     total_profit_loss: totalProfitLoss,
-    total_profit_loss_percent: totalCost > 0 ? (totalProfitLoss / totalCost) * 100 : 0,
+    total_profit_loss_percent:
+      totalCost > 0 ? (totalProfitLoss / totalCost) * 100 : 0,
     last_updated: lastUpdated,
   };
 }
 
-function normalizeAssetPosition(input: PortfolioAssetInput): NormalizedAssetPosition {
+function normalizeAssetPosition(
+  input: PortfolioAssetInput,
+): NormalizedAssetPosition {
   const quantity = toNonNegativeNumber(input.quantity);
   const purchasePrice = toNonNegativeNumber(input.purchase_price);
   const derivedCost = quantity * purchasePrice;
-  const totalCost = isFiniteNumber(input.profit_loss) && isFiniteNumber(input.current_value)
-    ? Math.max(input.current_value - input.profit_loss, 0)
-    : derivedCost;
+  const totalCost =
+    isFiniteNumber(input.profit_loss) && isFiniteNumber(input.current_value)
+      ? Math.max(input.current_value - input.profit_loss, 0)
+      : derivedCost;
 
-  const fallbackCurrentPrice = quantity > 0 ? totalCost / quantity : purchasePrice;
+  const fallbackCurrentPrice =
+    quantity > 0 ? totalCost / quantity : purchasePrice;
   const currentPrice = isFiniteNumber(input.current_price)
     ? toNonNegativeNumber(input.current_price)
     : fallbackCurrentPrice;
@@ -84,10 +89,12 @@ function normalizeAssetPosition(input: PortfolioAssetInput): NormalizedAssetPosi
     : currentValue - totalCost;
   const profitLossPercent = isFiniteNumber(input.profit_loss_percent)
     ? input.profit_loss_percent
-    : totalCost > 0 ? (profitLoss / totalCost) * 100 : 0;
+    : totalCost > 0
+      ? (profitLoss / totalCost) * 100
+      : 0;
 
   return {
-    symbol: (input.symbol ?? 'UNKNOWN').trim().toUpperCase() || 'UNKNOWN',
+    symbol: (input.symbol ?? "UNKNOWN").trim().toUpperCase() || "UNKNOWN",
     quantity,
     total_cost: totalCost,
     current_price: currentPrice,
@@ -98,7 +105,9 @@ function normalizeAssetPosition(input: PortfolioAssetInput): NormalizedAssetPosi
   };
 }
 
-function mergeAssetPositions(positions: NormalizedAssetPosition[]): NormalizedAssetPosition[] {
+function mergeAssetPositions(
+  positions: NormalizedAssetPosition[],
+): NormalizedAssetPosition[] {
   const mergedBySymbol = new Map<string, NormalizedAssetPosition>();
 
   for (const position of positions) {
@@ -125,21 +134,27 @@ function mergeAssetPositions(positions: NormalizedAssetPosition[]): NormalizedAs
       current_price: totalQuantity > 0 ? totalValue / totalQuantity : 0,
       current_value: totalValue,
       profit_loss: totalProfitLoss,
-      profit_loss_percent: totalCost > 0 ? (totalProfitLoss / totalCost) * 100 : 0,
-      last_updated: latestTimestamp > 0 ? new Date(latestTimestamp).toISOString() : null,
+      profit_loss_percent:
+        totalCost > 0 ? (totalProfitLoss / totalCost) * 100 : 0,
+      last_updated:
+        latestTimestamp > 0 ? new Date(latestTimestamp).toISOString() : null,
     });
   }
 
   return Array.from(mergedBySymbol.values());
 }
 
-function buildAllocationSlices(positions: NormalizedAssetPosition[], totalValue: number): PortfolioAllocationSlice[] {
+function buildAllocationSlices(
+  positions: NormalizedAssetPosition[],
+  totalValue: number,
+): PortfolioAllocationSlice[] {
   return positions
     .map((position) => ({
       symbol: position.symbol,
       quantity: position.quantity,
       current_value: position.current_value,
-      allocation_percent: totalValue > 0 ? (position.current_value / totalValue) * 100 : 0,
+      allocation_percent:
+        totalValue > 0 ? (position.current_value / totalValue) * 100 : 0,
       total_cost: position.total_cost,
       current_price: position.current_price,
       profit_loss: position.profit_loss,
@@ -148,7 +163,9 @@ function buildAllocationSlices(positions: NormalizedAssetPosition[], totalValue:
     .sort((left, right) => right.current_value - left.current_value);
 }
 
-function buildGainLossMetrics(allocations: PortfolioAllocationSlice[]): PortfolioGainLossMetrics {
+function buildGainLossMetrics(
+  allocations: PortfolioAllocationSlice[],
+): PortfolioGainLossMetrics {
   let profitablePositions = 0;
   let losingPositions = 0;
   let flatPositions = 0;
@@ -175,10 +192,20 @@ function buildGainLossMetrics(allocations: PortfolioAllocationSlice[]): Portfoli
   };
 }
 
-export function summarizePortfolio(assets: PortfolioAssetInput[]): PortfolioSummaryResult {
-  const mergedPositions = mergeAssetPositions(assets.map(normalizeAssetPosition));
-  const totalValue = mergedPositions.reduce((sum, position) => sum + position.current_value, 0);
-  const totalCost = mergedPositions.reduce((sum, position) => sum + position.total_cost, 0);
+export function summarizePortfolio(
+  assets: PortfolioAssetInput[],
+): PortfolioSummaryResult {
+  const mergedPositions = mergeAssetPositions(
+    assets.map(normalizeAssetPosition),
+  );
+  const totalValue = mergedPositions.reduce(
+    (sum, position) => sum + position.current_value,
+    0,
+  );
+  const totalCost = mergedPositions.reduce(
+    (sum, position) => sum + position.total_cost,
+    0,
+  );
   const latestTimestamp = mergedPositions.reduce((latest, position) => {
     const current = toTimestamp(position.last_updated) ?? 0;
     return current > latest ? current : latest;
@@ -186,9 +213,14 @@ export function summarizePortfolio(assets: PortfolioAssetInput[]): PortfolioSumm
   const summary = buildSummary(
     totalValue,
     totalCost,
-    latestTimestamp > 0 ? new Date(latestTimestamp).toISOString() : new Date().toISOString(),
+    latestTimestamp > 0
+      ? new Date(latestTimestamp).toISOString()
+      : new Date().toISOString(),
   );
-  const allocations = buildAllocationSlices(mergedPositions, summary.total_value);
+  const allocations = buildAllocationSlices(
+    mergedPositions,
+    summary.total_value,
+  );
   const metrics = buildGainLossMetrics(allocations);
 
   return {

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Box,
   Container,
@@ -33,17 +33,25 @@ import {
   Tr,
   Th,
   Td,
-} from '@chakra-ui/react';
-import { motion } from 'framer-motion';
+} from "@chakra-ui/react";
+import { motion } from "framer-motion";
 import {
   TbPigMoney,
   TbTrendingUp,
   TbCalendar,
   TbCoin,
   TbReceipt,
-} from 'react-icons/tb';
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { apiClient } from '@/lib/api';
+} from "react-icons/tb";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { apiClient } from "@/lib/api";
 
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
@@ -66,26 +74,26 @@ interface CalculationResult {
 }
 
 export default function PensionPage() {
-  const [currentAge, setCurrentAge] = useState('30');
-  const [retirementAge, setRetirementAge] = useState('65');
-  const [monthlyContribution, setMonthlyContribution] = useState('500');
-  const [currentSavings, setCurrentSavings] = useState('10000');
+  const [currentAge, setCurrentAge] = useState("30");
+  const [retirementAge, setRetirementAge] = useState("65");
+  const [monthlyContribution, setMonthlyContribution] = useState("500");
+  const [currentSavings, setCurrentSavings] = useState("10000");
   const [expectedReturn, setExpectedReturn] = useState(7);
   const [result, setResult] = useState<CalculationResult | null>(null);
 
   const bgGradient = useColorModeValue(
-    'linear(to-br, accent.50, brand.50, slate.100)',
-    'linear(to-br, slate.900, accent.900, brand.900)'
+    "linear(to-br, accent.50, brand.50, slate.100)",
+    "linear(to-br, slate.900, accent.900, brand.900)",
   );
 
-  const cardBg = useColorModeValue('white', 'slate.800');
-  const accentColor = useColorModeValue('brand.500', 'brand.400');
+  const cardBg = useColorModeValue("white", "slate.800");
+  const accentColor = useColorModeValue("brand.500", "brand.400");
   const summaryGradient = useColorModeValue(
-    'linear(to-br, brand.500, accent.500)',
-    'linear(to-br, brand.600, accent.600)'
+    "linear(to-br, brand.500, accent.500)",
+    "linear(to-br, brand.600, accent.600)",
   );
-  const tooltipBg = useColorModeValue('#fff', '#1E293B');
-  const tableHoverBg = useColorModeValue('slate.50', 'slate.700');
+  const tooltipBg = useColorModeValue("#fff", "#1E293B");
+  const tableHoverBg = useColorModeValue("slate.50", "slate.700");
 
   const calculateProjection = useCallback(async () => {
     try {
@@ -98,9 +106,15 @@ export default function PensionPage() {
       });
       setResult(response);
     } catch (error) {
-      console.error('Error calculating projection:', error);
+      console.error("Error calculating projection:", error);
     }
-  }, [currentAge, currentSavings, expectedReturn, monthlyContribution, retirementAge]);
+  }, [
+    currentAge,
+    currentSavings,
+    expectedReturn,
+    monthlyContribution,
+    retirementAge,
+  ]);
 
   useEffect(() => {
     if (
@@ -112,14 +126,22 @@ export default function PensionPage() {
     ) {
       calculateProjection();
     }
-  }, [calculateProjection, currentAge, retirementAge, monthlyContribution, currentSavings, expectedReturn]);
+  }, [
+    calculateProjection,
+    currentAge,
+    retirementAge,
+    monthlyContribution,
+    currentSavings,
+    expectedReturn,
+  ]);
 
-  const chartData = result?.projections.map((p) => ({
-    age: p.age,
-    value: p.total_value,
-    contributions: p.total_contributions,
-    returns: p.investment_returns,
-  })) || [];
+  const chartData =
+    result?.projections.map((p) => ({
+      age: p.age,
+      value: p.total_value,
+      contributions: p.total_contributions,
+      returns: p.investment_returns,
+    })) || [];
 
   return (
     <Box minH="100vh" bgGradient={bgGradient} py={8}>
@@ -148,7 +170,7 @@ export default function PensionPage() {
           </VStack>
         </MotionBox>
 
-        <Grid templateColumns={{ base: '1fr', lg: '1fr 2fr' }} gap={6}>
+        <Grid templateColumns={{ base: "1fr", lg: "1fr 2fr" }} gap={6}>
           {/* Input Form */}
           <GridItem>
             <MotionCard
@@ -174,7 +196,9 @@ export default function PensionPage() {
                   </FormControl>
 
                   <FormControl>
-                    <FormLabel fontWeight="600">Target Retirement Age</FormLabel>
+                    <FormLabel fontWeight="600">
+                      Target Retirement Age
+                    </FormLabel>
                     <Input
                       type="number"
                       value={retirementAge}
@@ -184,7 +208,9 @@ export default function PensionPage() {
                   </FormControl>
 
                   <FormControl>
-                    <FormLabel fontWeight="600">Monthly Contribution ($)</FormLabel>
+                    <FormLabel fontWeight="600">
+                      Monthly Contribution ($)
+                    </FormLabel>
                     <Input
                       type="number"
                       value={monthlyContribution}
@@ -221,8 +247,12 @@ export default function PensionPage() {
                       <SliderThumb boxSize={6} />
                     </Slider>
                     <HStack justify="space-between" mt={2}>
-                      <Text fontSize="xs" color="text-muted">Conservative (1%)</Text>
-                      <Text fontSize="xs" color="text-muted">Aggressive (15%)</Text>
+                      <Text fontSize="xs" color="text-muted">
+                        Conservative (1%)
+                      </Text>
+                      <Text fontSize="xs" color="text-muted">
+                        Aggressive (15%)
+                      </Text>
                     </HStack>
                   </FormControl>
 
@@ -311,7 +341,13 @@ export default function PensionPage() {
                           Investment Returns
                         </StatLabel>
                         <StatNumber fontSize="2xl" color="accent.500">
-                          ${((result.projected_value - result.total_contributions) / 1000).toFixed(0)}K
+                          $
+                          {(
+                            (result.projected_value -
+                              result.total_contributions) /
+                            1000
+                          ).toFixed(0)}
+                          K
                         </StatNumber>
                         <StatHelpText>
                           <Icon as={TbTrendingUp} mr={1} />
@@ -363,7 +399,12 @@ export default function PensionPage() {
                           <Text fontSize="sm">Total Value</Text>
                         </HStack>
                         <HStack spacing={2}>
-                          <Box w={3} h={3} borderRadius="full" bg="accent.500" />
+                          <Box
+                            w={3}
+                            h={3}
+                            borderRadius="full"
+                            bg="accent.500"
+                          />
                           <Text fontSize="sm">Contributions</Text>
                         </HStack>
                       </HStack>
@@ -373,28 +414,60 @@ export default function PensionPage() {
                     <ResponsiveContainer width="100%" height={300}>
                       <AreaChart data={chartData}>
                         <defs>
-                          <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#00AC74" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="#00AC74" stopOpacity={0} />
+                          <linearGradient
+                            id="colorValue"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#00AC74"
+                              stopOpacity={0.3}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#00AC74"
+                              stopOpacity={0}
+                            />
                           </linearGradient>
-                          <linearGradient id="colorContributions" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#FFB200" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="#FFB200" stopOpacity={0} />
+                          <linearGradient
+                            id="colorContributions"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#FFB200"
+                              stopOpacity={0.3}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#FFB200"
+                              stopOpacity={0}
+                            />
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
                         <XAxis dataKey="age" stroke="#888" />
                         <YAxis
                           stroke="#888"
-                          tickFormatter={(value) => `$${(value / 1000).toFixed(0)}K`}
+                          tickFormatter={(value) =>
+                            `$${(value / 1000).toFixed(0)}K`
+                          }
                         />
                         <Tooltip
                           contentStyle={{
                             backgroundColor: tooltipBg,
-                            border: '1px solid #00AC74',
-                            borderRadius: '8px',
+                            border: "1px solid #00AC74",
+                            borderRadius: "8px",
                           }}
-                          formatter={(value: number) => `$${value.toLocaleString()}`}
+                          formatter={(value: number) =>
+                            `$${value.toLocaleString()}`
+                          }
                         />
                         <Area
                           type="monotone"
@@ -442,18 +515,27 @@ export default function PensionPage() {
                       </Thead>
                       <Tbody>
                         {result.projections
-                          .filter((_, index) => index % 5 === 0 || index === result.projections.length - 1)
+                          .filter(
+                            (_, index) =>
+                              index % 5 === 0 ||
+                              index === result.projections.length - 1,
+                          )
                           .map((projection) => (
-                            <Tr key={projection.age} _hover={{ bg: tableHoverBg }}>
+                            <Tr
+                              key={projection.age}
+                              _hover={{ bg: tableHoverBg }}
+                            >
                               <Td fontWeight="600">{projection.age}</Td>
                               <Td isNumeric fontWeight="700" color="brand.500">
                                 ${projection.total_value.toLocaleString()}
                               </Td>
                               <Td isNumeric color="accent.500">
-                                ${projection.total_contributions.toLocaleString()}
+                                $
+                                {projection.total_contributions.toLocaleString()}
                               </Td>
                               <Td isNumeric color="text-secondary">
-                                ${projection.investment_returns.toLocaleString()}
+                                $
+                                {projection.investment_returns.toLocaleString()}
                               </Td>
                             </Tr>
                           ))}
