@@ -185,10 +185,19 @@ A reviewer pass on task-006/task-007 identified four bugs. All are now fixed:
 
 - Verification: `tsc --noEmit --skipLibCheck` filtered to `src/app/dashboard/data.ts` reports zero errors after fixes. All other tsc errors across the project are pre-existing "cannot find module" failures caused by `frontend/node_modules` not being installed in this environment. Full `npm install && npm run build` in `frontend/` is required to confirm a clean build in a real environment.
 
+### 19. Dashboard now has a watchlist-ready signal panel
+
+- Added `frontend/src/services/watchlist-signals.ts` as the service-layer adapter for watchlist rows plus optional sentiment history enrichment.
+- Added `frontend/src/components/dashboard/WatchlistSignalPanel.tsx` to render loading, unavailable, empty, and populated watchlist states without embedding signal logic in the UI.
+- `frontend/src/app/dashboard/data.ts` now fetches watchlist data through `lib/api.ts`, enriches up to four watchlist symbols with sentiment history, and returns a discriminated watchlist state on `DashboardData`.
+- `frontend/src/lib/api.ts` now exposes `getWatchlist()` as the canonical frontend access point for the future backend route.
+- The dashboard degrades safely when `/watchlist` is not present yet: the rest of the dashboard still loads, and the panel shows that backend support is not available on the current branch.
+- Verification passes for `./node_modules/.bin/tsc --noEmit`, targeted ESLint on changed frontend files, and `npm run build` in `frontend/`.
+
 ---
 
 ## Likely priorities (updated)
 
-1. Introduce watchlist domain (backend + frontend)
+1. Merge the backend watchlist branch and verify the end-to-end dashboard watchlist flow
 2. Establish historical snapshot plan (task-010)
 3. Review the frontend auth flow against the backend runtime contract beyond compile-time alignment

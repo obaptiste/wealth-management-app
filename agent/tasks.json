@@ -103,7 +103,7 @@
     "title": "Add watchlist signal panel",
     "description": "Create a panel that shows selected watchlist assets with sentiment or catalyst-related indicators.",
     "priority": "medium",
-    "status": "todo",
+    "status": "in_progress",
     "dependsOn": ["task-003", "task-005"],
     "acceptanceCriteria": [
       "Watchlist panel uses normalized data",

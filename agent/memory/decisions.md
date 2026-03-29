@@ -199,6 +199,21 @@ Impact:
 
 ---
 
+### [2026-03-29] Treat watchlist data as an optional dashboard enhancement until the backend lands
+Context:
+Task-008 needed a dashboard watchlist signal panel, but the current branch still lacks the watchlist ORM, schemas, endpoints, and migration work being developed separately.
+
+Decision:
+Implement the frontend watchlist adapter and panel now, and treat `/watchlist` as an optional endpoint. When the route is missing, the dashboard returns a typed `watchlist.status = "unavailable"` state instead of failing the entire page load.
+
+Reason:
+This lets the frontend progress without conflicting with concurrent backend work, keeps the watchlist signal logic in service code instead of UI components, and makes the eventual merge mostly a contract check rather than a large UI refactor.
+
+Impact:
+`frontend/src/app/dashboard/data.ts`, `frontend/src/services/watchlist-signals.ts`, and `frontend/src/components/dashboard/WatchlistSignalPanel.tsx` now support both "backend missing" and "backend available" states. After the backend branch merges, the remaining work is validating the endpoint shape and end-to-end behavior.
+
+---
+
 ## Decision log format
 
 Use this format for future entries:

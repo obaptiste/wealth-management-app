@@ -19,6 +19,10 @@ import {
   SentimentTrendChart,
   SentimentTrendChartSkeleton,
 } from "@/components/dashboard/SentimentTrendChart";
+import {
+  WatchlistSignalPanel,
+  WatchlistSignalPanelSkeleton,
+} from "@/components/dashboard/WatchlistSignalPanel";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 type DashboardLoadState =
@@ -68,6 +72,7 @@ export default function Dashboard() {
         <Stack gap={8}>
           <DashboardSummaryCardsSkeleton />
           <SentimentTrendChartSkeleton />
+          <WatchlistSignalPanelSkeleton />
         </Stack>
       );
     }
@@ -89,6 +94,7 @@ export default function Dashboard() {
       <Stack gap={8}>
         <DashboardSummaryCards data={state.data} />
         <SentimentTrendChart data={state.data.sentiment_trend} />
+        <WatchlistSignalPanel data={state.data.watchlist} />
       </Stack>
     );
   })();
