@@ -230,8 +230,24 @@ A reviewer pass on task-006/task-007 identified four bugs. All are now fixed:
 - The plan explicitly documents the write direction (daily scheduled snapshot job with idempotent upsert), read direction (snapshot-backed portfolio chart API), fallback behavior, and the trade-offs between mock and persistent history.
 - This task is documentation-only; no schema or API changes were made yet.
 
+### 22. Portfolio snapshot persistence is now live (task-011, 2026-03-31)
+
+- Added `PortfolioSnapshot` and `PortfolioSnapshotHolding` ORM models plus an Alembic migration to persist daily portfolio aggregates and holding rows.
+- Added snapshot capture/history/detail APIs in `backend/main.py` and a dedicated `backend/portfolio_snapshots.py` service module to keep snapshot logic out of route handlers.
+- Asset create, update, and delete now refresh the current day snapshot best-effort so the latest portfolio state is persisted without waiting for a batch job.
+- Snapshot capture resolves prices in this order: live yfinance quote, latest stored `AssetPriceHistory`, then purchase price fallback.
+
+### 23. Daily snapshot job and backfill path now exist (task-013, 2026-03-31)
+
+- Added `backend/snapshot_jobs.py` as the canonical batch entrypoint for historical snapshot capture.
+- The job captures only missing snapshot rows for a given date, so repeated runs are idempotent and safe after restarts.
+- Added inclusive range backfill support via `python3 -m backend.snapshot_jobs --backfill-start YYYY-MM-DD --backfill-end YYYY-MM-DD`.
+- Added optional scheduler configuration in `backend/config.py` and startup wiring in `backend/main.py` behind `SNAPSHOT_SCHEDULER_ENABLED`; this is intended for exactly one dedicated process.
+- Documented the manual run, backfill, and dedicated scheduler env vars in `README.md`.
+- Fixed `backend/database.py` to bind `async_session_factory` to the SQLAlchemy engine so real runtime sessions, including the new snapshot job, can open database connections correctly.
+
 ## Likely priorities (updated)
 
-1. Implement the portfolio snapshot persistence layer described in `agent/memory/historical-snapshot-plan.md`
+1. Wire the frontend portfolio history views to the new snapshot API
 2. Review the frontend auth flow against the backend runtime contract beyond compile-time alignment
 3. Validate the watchlist flow in a live authenticated environment
