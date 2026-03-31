@@ -246,8 +246,16 @@ A reviewer pass on task-006/task-007 identified four bugs. All are now fixed:
 - Documented the manual run, backfill, and dedicated scheduler env vars in `README.md`.
 - Fixed `backend/database.py` to bind `async_session_factory` to the SQLAlchemy engine so real runtime sessions, including the new snapshot job, can open database connections correctly.
 
+### 24. Frontend portfolio history wired to snapshot API (task-012, 2026-03-31)
+
+- `frontend/src/lib/api.ts` now exposes `getPortfolioSnapshotHistory(portfolioId, days?)` calling `GET /portfolios/{id}/snapshots?days=N` and `getPortfolioSnapshot(portfolioId, date)` calling `GET /portfolios/{id}/snapshots/{date}`.
+- `frontend/src/types/domain.ts` now exports `PortfolioSnapshotHistoryResponse { portfolio_id, from_date, to_date, points }` aligned with the backend schema.
+- `frontend/src/app/portfolio/[id]/page.tsx` now fetches snapshot history in parallel with portfolio detail, maps `HistoricalSnapshotPoint[]` to `DataPoint[]`, and renders `PerformanceChart` when history is available. The history fetch degrades silently to an empty chart if the endpoint returns an error or has no data yet.
+- `PerformanceChart` is loaded via `next/dynamic` with `ssr: false` to keep the d3 dependency client-only.
+- Verification: `tsc --noEmit --skipLibCheck` on changed files reports zero errors. Full `npm run build` requires `npm install` in `frontend/` which is not available in this environment.
+
 ## Likely priorities (updated)
 
-1. Wire the frontend portfolio history views to the new snapshot API
-2. Review the frontend auth flow against the backend runtime contract beyond compile-time alignment
-3. Validate the watchlist flow in a live authenticated environment
+1. Review the frontend auth flow against the backend runtime contract beyond compile-time alignment
+2. Add snapshot comparison endpoint and UI hook (task-014)
+3. Validate the watchlist and portfolio history flows in a live authenticated environment

@@ -160,8 +160,9 @@
     "title": "Wire frontend portfolio history to snapshot API",
     "description": "Update the frontend portfolio and dashboard history loaders to consume persisted portfolio snapshots instead of rebuilding historical views from current live portfolio state.",
     "priority": "high",
-    "status": "todo",
+    "status": "done",
     "dependsOn": ["task-011"],
+    "completedAt": "2026-03-31",
     "acceptanceCriteria": [
       "Frontend API client exposes the portfolio snapshot history endpoint",
       "Dashboard or portfolio history views read snapshot-backed series",

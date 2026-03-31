@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from "axios";
 import type { CreateAssetData, UpdateAssetData } from "@/types/assets";
 import type { AuthResponse, User } from "@/types/api";
+import type { PortfolioSnapshotHistoryResponse } from "@/types/domain";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -149,6 +150,29 @@ class ApiClient {
   async getSentimentHistory(symbol: string, days: number = 7) {
     const response = await this.client.get(
       `/sentiment/history/${symbol}?days=${days}`,
+    );
+    return response.data;
+  }
+
+  // Portfolio snapshot endpoints
+  async getPortfolioSnapshotHistory(
+    portfolioId: string | number,
+    days: number = 30,
+  ): Promise<PortfolioSnapshotHistoryResponse> {
+    const response = await this.client.get<PortfolioSnapshotHistoryResponse>(
+      `/portfolios/${portfolioId}/snapshots?days=${days}`,
+    );
+    return response.data;
+  }
+
+  // Returns unknown because the detailed snapshot type (with holdings) does not
+  // yet have a dedicated frontend type. Call sites should cast after validation.
+  async getPortfolioSnapshot(
+    portfolioId: string | number,
+    date: string,
+  ): Promise<unknown> {
+    const response = await this.client.get(
+      `/portfolios/${portfolioId}/snapshots/${date}`,
     );
     return response.data;
   }

@@ -2,10 +2,9 @@
 
 ## Immediate next steps
 
-- Wire the frontend portfolio history views to the snapshot APIs added in `backend/main.py`
-- Exercise the new snapshot job path in a real environment with one dedicated scheduler process
 - Review the runtime auth flow end-to-end now that the compile/build contract is aligned with `/auth/token` and `/auth/me`
-- Validate the watchlist flow in a live authenticated environment
+- Exercise the snapshot job path in a real environment with one dedicated scheduler process
+- Validate the watchlist and portfolio history flows in a live authenticated environment
 
 ## What is blocked
 
