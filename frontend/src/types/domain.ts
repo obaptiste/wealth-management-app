@@ -1,4 +1,3 @@
-import type { AssetWithPerformance } from "./assets";
 import type { PortfolioSummary } from "./portfolios";
 
 export type SentimentLabel =
@@ -68,11 +67,23 @@ export interface WatchlistSignalItem extends WatchlistItem {
   signal_strength: WatchlistSignalStrength;
 }
 
+export interface PortfolioSnapshotHolding {
+  asset_id?: number | null;
+  symbol: string;
+  quantity: number;
+  price: number;
+  current_value: number;
+  allocation_percent: number;
+  total_cost: number;
+  profit_loss: number;
+  profit_loss_percent: number;
+}
+
 export interface PortfolioSnapshot {
   portfolio_id: number;
   as_of: string;
   summary: PortfolioSummary;
-  holdings: AssetWithPerformance[];
+  holdings: PortfolioSnapshotHolding[];
 }
 
 export interface HistoricalSnapshotPoint {
@@ -87,4 +98,55 @@ export interface PortfolioSnapshotHistoryResponse {
   from_date: string;
   to_date: string;
   points: HistoricalSnapshotPoint[];
+}
+
+export type SnapshotHoldingDeltaStatus =
+  | "added"
+  | "removed"
+  | "changed"
+  | "unchanged";
+
+export interface PortfolioSnapshotComparisonSummary {
+  current_value: number;
+  previous_value: number;
+  value_change: number;
+  value_change_percent: number;
+  current_cost: number;
+  previous_cost: number;
+  cost_change: number;
+  current_profit_loss: number;
+  previous_profit_loss: number;
+  profit_loss_change: number;
+  current_profit_loss_percent: number;
+  previous_profit_loss_percent: number;
+  profit_loss_percent_change: number;
+}
+
+export interface PortfolioSnapshotHoldingDelta {
+  asset_id?: number | null;
+  symbol: string;
+  status: SnapshotHoldingDeltaStatus;
+  current_quantity: number;
+  previous_quantity: number;
+  quantity_change: number;
+  current_price: number;
+  previous_price: number;
+  price_change: number;
+  current_value: number;
+  previous_value: number;
+  value_change: number;
+  current_allocation_percent: number;
+  previous_allocation_percent: number;
+  allocation_percent_change: number;
+  current_profit_loss: number;
+  previous_profit_loss: number;
+  profit_loss_change: number;
+}
+
+export interface PortfolioSnapshotComparison {
+  portfolio_id: number;
+  current_as_of: string;
+  previous_as_of: string;
+  summary: PortfolioSnapshotComparisonSummary;
+  holdings: PortfolioSnapshotHoldingDelta[];
 }

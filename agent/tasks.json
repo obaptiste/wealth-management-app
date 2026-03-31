@@ -188,25 +188,27 @@
     "title": "Add snapshot comparison endpoint and UI hook",
     "description": "Expose snapshot-to-snapshot holding deltas so the product can show allocation drift and portfolio changes between two dates.",
     "priority": "medium",
-    "status": "todo",
+    "status": "done",
     "dependsOn": ["task-011", "task-012"],
     "acceptanceCriteria": [
       "Backend can compare two snapshots for the same portfolio",
       "Response includes summary deltas and holding-level changes",
       "Frontend has a clear integration point for comparison views"
-    ]
+    ],
+    "completedAt": "2026-03-31"
   },
   {
     "id": "task-015",
     "title": "Resolve agent memory merge conflicts",
     "description": "Clean up the conflicted agent memory markdown files so current state, decisions, and next steps can be updated safely again.",
     "priority": "medium",
-    "status": "todo",
+    "status": "done",
     "dependsOn": [],
     "acceptanceCriteria": [
       "current-state.md, decisions.md, and next-steps.md no longer contain merge conflicts",
       "Project memory reflects the completed snapshot persistence work",
       "Future task and state updates can be made without conflict markers"
-    ]
+    ],
+    "completedAt": "2026-03-31"
   }
 ]

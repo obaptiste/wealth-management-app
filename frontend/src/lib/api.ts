@@ -1,7 +1,11 @@
 import axios, { AxiosInstance, AxiosError } from "axios";
 import type { CreateAssetData, UpdateAssetData } from "@/types/assets";
 import type { AuthResponse, User } from "@/types/api";
-import type { PortfolioSnapshotHistoryResponse } from "@/types/domain";
+import type {
+  PortfolioSnapshot,
+  PortfolioSnapshotComparison,
+  PortfolioSnapshotHistoryResponse,
+} from "@/types/domain";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -165,14 +169,31 @@ class ApiClient {
     return response.data;
   }
 
-  // Returns unknown because the detailed snapshot type (with holdings) does not
-  // yet have a dedicated frontend type. Call sites should cast after validation.
   async getPortfolioSnapshot(
     portfolioId: string | number,
     date: string,
-  ): Promise<unknown> {
-    const response = await this.client.get(
+  ): Promise<PortfolioSnapshot> {
+    const response = await this.client.get<PortfolioSnapshot>(
       `/portfolios/${portfolioId}/snapshots/${date}`,
+    );
+    return response.data;
+  }
+
+  async getPortfolioSnapshotComparison(
+    portfolioId: string | number,
+    options?: { currentDate?: string; previousDate?: string },
+  ): Promise<PortfolioSnapshotComparison> {
+    const params = new URLSearchParams();
+    if (options?.currentDate) {
+      params.set("current_date", options.currentDate);
+    }
+    if (options?.previousDate) {
+      params.set("previous_date", options.previousDate);
+    }
+
+    const query = params.toString();
+    const response = await this.client.get<PortfolioSnapshotComparison>(
+      `/portfolios/${portfolioId}/snapshots/compare${query ? `?${query}` : ""}`,
     );
     return response.data;
   }

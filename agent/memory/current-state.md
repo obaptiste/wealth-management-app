@@ -254,8 +254,18 @@ A reviewer pass on task-006/task-007 identified four bugs. All are now fixed:
 - `PerformanceChart` is loaded via `next/dynamic` with `ssr: false` to keep the d3 dependency client-only.
 - Verification: `tsc --noEmit --skipLibCheck` on changed files reports zero errors. Full `npm run build` requires `npm install` in `frontend/` which is not available in this environment.
 
+### 25. Snapshot comparison endpoint and UI hook are now live (task-014, 2026-03-31)
+
+- Added a backend comparison contract in `backend/schemas.py` and `GET /portfolios/{id}/snapshots/compare` in `backend/main.py`.
+- The compare endpoint supports explicit dates or defaults to the latest snapshot and the nearest earlier snapshot for the same portfolio.
+- `backend/portfolio_snapshots.py` now computes summary deltas plus holding-level changes with `added`, `removed`, `changed`, and `unchanged` statuses.
+- `frontend/src/types/domain.ts` now models snapshot holding rows and comparison payloads explicitly instead of treating snapshot holdings as `AssetWithPerformance[]`.
+- `frontend/src/lib/api.ts` now exposes `getPortfolioSnapshotComparison()`.
+- `frontend/src/app/portfolio/[id]/page.tsx` now renders a lightweight “Snapshot Comparison” section driven by the latest two available snapshots, alongside the snapshot history chart.
+- Verification passed for `python3 -m compileall backend`, targeted frontend ESLint, `./node_modules/.bin/tsc --noEmit`, and `npm run build` in `frontend/`. Backend pytest remains blocked here because `pytest` is not installed in the system Python.
+
 ## Likely priorities (updated)
 
-1. Review the frontend auth flow against the backend runtime contract beyond compile-time alignment
-2. Add snapshot comparison endpoint and UI hook (task-014)
-3. Validate the watchlist and portfolio history flows in a live authenticated environment
+1. Resolve the remaining task list entry for agent memory cleanup
+2. Review the frontend auth flow against the backend runtime contract beyond compile-time alignment
+3. Validate the watchlist and portfolio snapshot flows in a live authenticated environment
