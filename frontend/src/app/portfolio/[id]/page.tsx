@@ -37,26 +37,14 @@ export default function PortfolioDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const portfolioId = Number(params.id);
+
+    // Load portfolio detail first so the summary and assets render immediately.
+    const fetchPortfolio = async () => {
       try {
         setLoading(true);
-        const portfolioId = Number(params.id);
-
-        // Fetch portfolio detail and snapshot history in parallel
-        const [portfolioData, history] = await Promise.all([
-          getPortfolio(portfolioId),
-          apiClient
-            .getPortfolioSnapshotHistory(portfolioId, 30)
-            .then((data) => toChartPoints(data as PortfolioSnapshotHistoryResponse))
-            .catch(() => {
-              // History is non-critical — degrade silently if the endpoint
-              // is unavailable or has no data yet
-              return [] as DataPoint[];
-            }),
-        ]);
-
-        setPortfolio(portfolioData);
-        setHistoryPoints(history);
+        const data = await getPortfolio(portfolioId);
+        setPortfolio(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
@@ -64,7 +52,19 @@ export default function PortfolioDetailPage() {
       }
     };
 
-    fetchData();
+    // History is non-critical: fetch independently so a slow or failing
+    // /snapshots response never delays the summary or asset list.
+    const fetchHistory = async () => {
+      try {
+        const data = await apiClient.getPortfolioSnapshotHistory(portfolioId, 30);
+        setHistoryPoints(toChartPoints(data as PortfolioSnapshotHistoryResponse));
+      } catch {
+        // Degrade silently — empty state is shown instead
+      }
+    };
+
+    fetchPortfolio();
+    fetchHistory();
   }, [params.id]);
 
   if (loading) return <div>Loading portfolio details...</div>;
