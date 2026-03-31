@@ -55,3 +55,38 @@ This project aims to provide a streamlined platform for analyzing financial data
 - **ML/AI**: [Hugging Face Transformers](https://github.com/huggingface/transformers) (FinBERT model)
 - **Frontend**: [Next.js](https://nextjs.org/) admin dashboard (with React)
 - **Deployment**: Dockerized environment
+
+---
+
+## Daily Snapshot Capture
+
+The backend now includes a portfolio snapshot job runner so historical portfolio rows can be captured even when users are inactive.
+
+### Manual run
+
+From the repo root:
+
+```bash
+python3 -m backend.snapshot_jobs
+```
+
+This captures any missing snapshot for today in UTC.
+
+### Backfill missing dates
+
+```bash
+python3 -m backend.snapshot_jobs --backfill-start 2026-03-01 --backfill-end 2026-03-31
+```
+
+The backfill is idempotent: if a portfolio already has a row for a date, that date is skipped.
+
+### Dedicated scheduler process
+
+Set these backend environment variables on exactly one dedicated process:
+
+- `SNAPSHOT_SCHEDULER_ENABLED=true`
+- `SNAPSHOT_CAPTURE_HOUR_UTC=22`
+- `SNAPSHOT_CAPTURE_MINUTE_UTC=0`
+- `SNAPSHOT_SCHEDULER_POLL_SECONDS=300`
+
+With that enabled, the process will capture any missing snapshot rows once the configured UTC time has passed. It only writes missing daily rows, so restarts are safe.

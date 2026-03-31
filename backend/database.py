@@ -20,6 +20,7 @@ engine = create_async_engine(
 
 # Session factory for creating database sessions
 async_session_factory = sessionmaker(
+    bind=engine,
     class_=AsyncSession,
     expire_on_commit=False,
     autoflush=False      # Prevent automatic flushing for better control
