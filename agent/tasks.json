@@ -174,13 +174,14 @@
     "title": "Add scheduled and backfill snapshot capture",
     "description": "Introduce a repeatable way to capture daily portfolio snapshots for inactive portfolios and backfill missing days for existing data.",
     "priority": "high",
-    "status": "todo",
+    "status": "done",
     "dependsOn": ["task-011"],
     "acceptanceCriteria": [
       "A documented scheduled capture path exists",
       "Existing portfolios can be backfilled idempotently",
       "Operational failure modes are logged clearly"
-    ]
+    ],
+    "completedAt": "2026-03-31"
   },
   {
     "id": "task-014",

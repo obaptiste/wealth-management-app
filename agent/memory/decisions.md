@@ -284,6 +284,38 @@ Future schema work should center on `portfolio_snapshots` and `portfolio_snapsho
 
 ---
 
+### [2026-03-31] Keep daily snapshot capture in a dedicated opt-in process
+
+Context:
+The repo did not have an existing scheduler framework. Running a scheduler loop inside every web worker would risk duplicate work and make deployment topology matter too much.
+
+Decision:
+Add a reusable `backend/snapshot_jobs.py` module, expose a manual CLI/backfill entrypoint, and only start the in-process scheduler loop when `SNAPSHOT_SCHEDULER_ENABLED=true` on one dedicated process.
+
+Reason:
+This keeps the batch logic explicit and testable, avoids hidden background behavior in normal web instances, and still gives the project a practical daily capture path without introducing Celery or another job system.
+
+Impact:
+Operations should enable the scheduler on exactly one process. Developers can run `python3 -m backend.snapshot_jobs` manually for ad hoc capture or use the backfill flags for historical gaps.
+
+---
+
+### [2026-03-31] Daily snapshot jobs should only create missing rows
+
+Context:
+The live snapshot capture endpoint intentionally upserts same-day rows, but a scheduled job may restart or be triggered more than once in a day.
+
+Decision:
+Make the batch job skip portfolios that already have a snapshot for the target date, while keeping the interactive capture path upsert-capable.
+
+Reason:
+Scheduled capture should preserve the first stable daily record instead of silently refreshing it all day. Interactive/manual capture still needs the ability to repair or refresh the current date on demand.
+
+Impact:
+`backend/snapshot_jobs.py` queries for existing `portfolio_snapshots` rows before capturing. The app now has two related but distinct write modes: job capture for missing dates and API capture for explicit refreshes.
+
+---
+
 ## Decision log format
 
 Use this format for future entries:
