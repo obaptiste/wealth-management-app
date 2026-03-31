@@ -29,6 +29,7 @@ from .models import (
 )
 from .portfolio_snapshots import (
     capture_portfolio_snapshot,
+    get_portfolio_snapshot_comparison,
     get_portfolio_snapshot_by_date,
     get_portfolio_snapshot_history,
 )
@@ -42,7 +43,7 @@ from .schemas import (
     InsuranceRecommendation, InsuranceRecommendationsResponse, PensionPlanCreate,
     PensionPlanUpdate, PensionPlanOut, PensionCalculationRequest, PensionCalculationResponse,
     PensionProjection, WatchlistItemCreate, WatchlistItemOut, WatchlistItemSentiment,
-    PortfolioSnapshotOut, PortfolioSnapshotHistoryResponse,
+    PortfolioSnapshotOut, PortfolioSnapshotHistoryResponse, PortfolioSnapshotComparisonOut,
 )
 from .auth import (
     authenticate_user, create_access_token, get_current_user,
@@ -605,6 +606,49 @@ async def list_portfolio_snapshots(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while fetching portfolio snapshot history",
+        )
+
+
+@app.get(
+    "/portfolios/{portfolio_id}/snapshots/compare",
+    response_model=PortfolioSnapshotComparisonOut,
+    tags=["Portfolio Snapshots"],
+)
+async def compare_portfolio_snapshots(
+    portfolio_id: int = Path(..., ge=1),
+    current_date: Optional[date] = Query(None),
+    previous_date: Optional[date] = Query(None),
+    db: AsyncSession = Depends(get_db_dependency),
+    current_user: User = Depends(get_current_active_user),
+):
+    """Compare two snapshots for the same portfolio."""
+
+    try:
+        comparison = await get_portfolio_snapshot_comparison(
+            db,
+            portfolio_id,
+            current_user.id,
+            current_date=current_date,
+            previous_date=previous_date,
+        )
+        if comparison is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Not enough portfolio snapshots to compare",
+            )
+        return comparison
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error comparing portfolio snapshots: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while comparing portfolio snapshots",
         )
 
 

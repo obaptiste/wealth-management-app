@@ -316,6 +316,38 @@ Impact:
 
 ---
 
+### [2026-03-31] Default snapshot comparison to the latest two available captures
+
+Context:
+Task-014 required a comparison API and frontend hook, but forcing the UI to select dates before any comparison can render would add needless friction to the first integration.
+
+Decision:
+Add `GET /portfolios/{id}/snapshots/compare` with optional `current_date` and `previous_date` query params. When omitted, compare the latest snapshot against the nearest earlier snapshot.
+
+Reason:
+This gives the frontend a simple default path for “what changed since the last capture” while preserving explicit date-based comparisons for future UI controls.
+
+Impact:
+The portfolio detail page can render a comparison section immediately without a date picker, and future richer comparison views can pass explicit dates without changing the endpoint shape.
+
+---
+
+### [2026-03-31] Model snapshot holdings separately from live asset performance rows
+
+Context:
+The frontend `PortfolioSnapshot` type still claimed that snapshot holdings were `AssetWithPerformance[]`, but persisted snapshot rows do not include the full live-asset fields like `purchase_date`, `created_at`, or `updated_at`.
+
+Decision:
+Introduce dedicated snapshot holding and snapshot comparison types in `frontend/src/types/domain.ts` and use those in the API client.
+
+Reason:
+The snapshot API is not the same contract as the live asset detail API. Keeping those shapes separate avoids misleading assumptions and gives the comparison UI a clearer, narrower data model.
+
+Impact:
+`frontend/src/lib/api.ts` now returns typed snapshot detail/comparison payloads, and future snapshot-based UI work can depend on explicit historical shapes rather than reusing live asset types.
+
+---
+
 ## Decision log format
 
 Use this format for future entries:
