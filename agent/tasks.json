@@ -154,5 +154,57 @@
       "Asset create, update, and delete refresh the current daily snapshot"
     ],
     "completedAt": "2026-03-31"
+  },
+  {
+    "id": "task-012",
+    "title": "Wire frontend portfolio history to snapshot API",
+    "description": "Update the frontend portfolio and dashboard history loaders to consume persisted portfolio snapshots instead of rebuilding historical views from current live portfolio state.",
+    "priority": "high",
+    "status": "todo",
+    "dependsOn": ["task-011"],
+    "acceptanceCriteria": [
+      "Frontend API client exposes the portfolio snapshot history endpoint",
+      "Dashboard or portfolio history views read snapshot-backed series",
+      "Historical chart types stay aligned with the backend response shape"
+    ]
+  },
+  {
+    "id": "task-013",
+    "title": "Add scheduled and backfill snapshot capture",
+    "description": "Introduce a repeatable way to capture daily portfolio snapshots for inactive portfolios and backfill missing days for existing data.",
+    "priority": "high",
+    "status": "todo",
+    "dependsOn": ["task-011"],
+    "acceptanceCriteria": [
+      "A documented scheduled capture path exists",
+      "Existing portfolios can be backfilled idempotently",
+      "Operational failure modes are logged clearly"
+    ]
+  },
+  {
+    "id": "task-014",
+    "title": "Add snapshot comparison endpoint and UI hook",
+    "description": "Expose snapshot-to-snapshot holding deltas so the product can show allocation drift and portfolio changes between two dates.",
+    "priority": "medium",
+    "status": "todo",
+    "dependsOn": ["task-011", "task-012"],
+    "acceptanceCriteria": [
+      "Backend can compare two snapshots for the same portfolio",
+      "Response includes summary deltas and holding-level changes",
+      "Frontend has a clear integration point for comparison views"
+    ]
+  },
+  {
+    "id": "task-015",
+    "title": "Resolve agent memory merge conflicts",
+    "description": "Clean up the conflicted agent memory markdown files so current state, decisions, and next steps can be updated safely again.",
+    "priority": "medium",
+    "status": "todo",
+    "dependsOn": [],
+    "acceptanceCriteria": [
+      "current-state.md, decisions.md, and next-steps.md no longer contain merge conflicts",
+      "Project memory reflects the completed snapshot persistence work",
+      "Future task and state updates can be made without conflict markers"
+    ]
   }
 ]

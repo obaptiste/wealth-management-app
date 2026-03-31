@@ -1,4 +1,5 @@
 # main.py
+import asyncio
 import logging
 import sys
 from fastapi import FastAPI, Depends, HTTPException, status, Query, Path
@@ -31,6 +32,7 @@ from .portfolio_snapshots import (
     get_portfolio_snapshot_by_date,
     get_portfolio_snapshot_history,
 )
+from .snapshot_jobs import run_daily_snapshot_scheduler
 from .schemas import (
     UserCreate, UserOut, Token, PortfolioCreate, PortfolioOut,
     PortfolioUpdate, PortfolioWithSummary, PortfolioSummary, AssetCreate, AssetOut,
@@ -58,6 +60,8 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+snapshot_scheduler_task: Optional[asyncio.Task[None]] = None
+snapshot_scheduler_stop_event: Optional[asyncio.Event] = None
 
 
 async def refresh_today_snapshot_after_asset_write(
@@ -113,6 +117,9 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     """Initialize resources on startup."""
+    global snapshot_scheduler_task
+    global snapshot_scheduler_stop_event
+
     logger.info("Starting up application")
     
     # Initialize sentiment analysis model
@@ -124,9 +131,35 @@ async def startup_event():
         logger.error(f"Failed to load sentiment analysis model: {str(e)}")
         globalSetting.sentiment_model = None
 
+    if settings.snapshot_scheduler_enabled:
+        snapshot_scheduler_stop_event = asyncio.Event()
+        snapshot_scheduler_task = asyncio.create_task(
+            run_daily_snapshot_scheduler(snapshot_scheduler_stop_event)
+        )
+        logger.info(
+            "Daily snapshot scheduler enabled for this process at %02d:%02d UTC",
+            settings.snapshot_capture_hour_utc,
+            settings.snapshot_capture_minute_utc,
+        )
+
 @app.on_event("shutdown")
 async def shutdown_event():
     """Clean up resources on shutdown."""
+    global snapshot_scheduler_task
+    global snapshot_scheduler_stop_event
+
+    if snapshot_scheduler_stop_event is not None:
+        snapshot_scheduler_stop_event.set()
+
+    if snapshot_scheduler_task is not None:
+        snapshot_scheduler_task.cancel()
+        try:
+            await snapshot_scheduler_task
+        except asyncio.CancelledError:
+            logger.info("Daily snapshot scheduler stopped")
+        snapshot_scheduler_task = None
+        snapshot_scheduler_stop_event = None
+
     logger.info("Shutting down application")
 
 # Health check endpoint

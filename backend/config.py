@@ -30,6 +30,10 @@ class Settings(BaseSettings):
     # Application settings
     env_name: str = os.getenv("ENV_NAME", "development")
     debug: bool = os.getenv("DEBUG", "True").lower() in ("true", "1", "t")
+    snapshot_scheduler_enabled: bool = os.getenv("SNAPSHOT_SCHEDULER_ENABLED", "False").lower() in ("true", "1", "t")
+    snapshot_capture_hour_utc: int = int(os.getenv("SNAPSHOT_CAPTURE_HOUR_UTC", "22"))
+    snapshot_capture_minute_utc: int = int(os.getenv("SNAPSHOT_CAPTURE_MINUTE_UTC", "0"))
+    snapshot_scheduler_poll_seconds: int = int(os.getenv("SNAPSHOT_SCHEDULER_POLL_SECONDS", "300"))
     
     # Database URLs as computed fields
     database_url: str = ""
