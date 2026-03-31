@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
+import axios from "axios";
 import apiClient from "@/lib/api";
 import type { PortfolioWithSummary } from "@/types/";
 import type { DataPoint } from "@/types/chart";
@@ -62,9 +63,14 @@ export default function PortfolioDetailPage() {
         const data = await apiClient.getPortfolioSnapshotHistory(portfolioId, 30);
         setHistoryPoints(toChartPoints(data));
       } catch (err) {
-        // Log so unexpected failures (5xx, schema errors) are visible in dev tools
-        console.warn("Portfolio snapshot history unavailable:", err);
-        // historyPoints is already [] — empty state is shown
+        if (axios.isAxiosError(err) && err.response?.status === 404) {
+          // Expected: no snapshots exist yet — show empty state silently
+          return;
+        }
+        // Unexpected failure (5xx, network error, schema mismatch) — surface
+        // in dev tools without blocking the portfolio summary or asset list.
+        console.error("Portfolio snapshot history failed unexpectedly:", err);
+        throw err;
       }
     };
 
