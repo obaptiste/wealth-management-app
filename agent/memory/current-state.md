@@ -230,8 +230,16 @@ A reviewer pass on task-006/task-007 identified four bugs. All are now fixed:
 - The plan explicitly documents the write direction (daily scheduled snapshot job with idempotent upsert), read direction (snapshot-backed portfolio chart API), fallback behavior, and the trade-offs between mock and persistent history.
 - This task is documentation-only; no schema or API changes were made yet.
 
+### 22. Frontend portfolio history wired to snapshot API (task-012, 2026-03-31)
+
+- `frontend/src/lib/api.ts` now exposes `getPortfolioSnapshotHistory(portfolioId, days?)` calling `GET /portfolios/{id}/snapshots?days=N` and `getPortfolioSnapshot(portfolioId, date)` calling `GET /portfolios/{id}/snapshots/{date}`.
+- `frontend/src/types/domain.ts` now exports `PortfolioSnapshotHistoryResponse { portfolio_id, from_date, to_date, points }` aligned with the backend schema.
+- `frontend/src/app/portfolio/[id]/page.tsx` now fetches snapshot history in parallel with portfolio detail, maps `HistoricalSnapshotPoint[]` to `DataPoint[]`, and renders `PerformanceChart` when history is available. The history fetch degrades silently to an empty chart if the endpoint returns an error or has no data yet.
+- `PerformanceChart` is loaded via `next/dynamic` with `ssr: false` to keep the d3 dependency client-only.
+- Verification: `tsc --noEmit --skipLibCheck` on changed files reports zero errors. Full `npm run build` requires `npm install` in `frontend/` which is not available in this environment.
+
 ## Likely priorities (updated)
 
-1. Implement the portfolio snapshot persistence layer described in `agent/memory/historical-snapshot-plan.md`
+1. Add scheduled and backfill snapshot capture (task-013)
 2. Review the frontend auth flow against the backend runtime contract beyond compile-time alignment
-3. Validate the watchlist flow in a live authenticated environment
+3. Add snapshot comparison endpoint and UI hook (task-014)

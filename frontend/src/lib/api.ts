@@ -153,6 +153,24 @@ class ApiClient {
     return response.data;
   }
 
+  // Portfolio snapshot endpoints
+  async getPortfolioSnapshotHistory(
+    portfolioId: string | number,
+    days: number = 30,
+  ) {
+    const response = await this.client.get(
+      `/portfolios/${portfolioId}/snapshots?days=${days}`,
+    );
+    return response.data;
+  }
+
+  async getPortfolioSnapshot(portfolioId: string | number, date: string) {
+    const response = await this.client.get(
+      `/portfolios/${portfolioId}/snapshots/${date}`,
+    );
+    return response.data;
+  }
+
   async getWatchlist() {
     const response = await this.client.get("/watchlist");
     return response.data;

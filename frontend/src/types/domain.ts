@@ -80,3 +80,11 @@ export interface HistoricalSnapshotPoint {
   portfolio_value: number;
   sentiment_score?: number;
 }
+
+/** Matches backend PortfolioSnapshotHistoryResponse */
+export interface PortfolioSnapshotHistoryResponse {
+  portfolio_id: number;
+  from_date: string;
+  to_date: string;
+  points: HistoricalSnapshotPoint[];
+}

@@ -2,9 +2,9 @@
 
 ## Immediate next steps
 
-- Implement the portfolio snapshot persistence layer described in `agent/memory/historical-snapshot-plan.md`
+- Add scheduled and backfill snapshot capture (task-013): introduce a repeatable way to capture daily snapshots and backfill missing days
 - Review the runtime auth flow end-to-end now that the compile/build contract is aligned with `/auth/token` and `/auth/me`
-- Validate the watchlist flow in a live authenticated environment
+- Validate the watchlist and portfolio history flows in a live authenticated environment
 
 ## What is blocked
 
