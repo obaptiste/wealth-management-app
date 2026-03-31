@@ -57,9 +57,11 @@ export default function PortfolioDetailPage() {
     const fetchHistory = async () => {
       try {
         const data = await apiClient.getPortfolioSnapshotHistory(portfolioId, 30);
-        setHistoryPoints(toChartPoints(data as PortfolioSnapshotHistoryResponse));
-      } catch {
-        // Degrade silently — empty state is shown instead
+        setHistoryPoints(toChartPoints(data));
+      } catch (err) {
+        // Log so unexpected failures (5xx, schema errors) are visible in dev tools
+        console.warn("Portfolio snapshot history unavailable:", err);
+        // Degrade silently — empty state is shown instead of blocking the page
       }
     };
 
