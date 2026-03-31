@@ -1,5 +1,5 @@
 # models.py
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean, Text, Index
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean, Text, Index, Date
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declared_attr
@@ -54,6 +54,7 @@ class Portfolio(Base, TimestampMixin):
     # Relationships
     owner = relationship("User", back_populates="portfolios")
     assets = relationship("Asset", back_populates="portfolio", cascade="all, delete-orphan")
+    snapshots = relationship("PortfolioSnapshot", back_populates="portfolio", cascade="all, delete-orphan")
     
     # Add composite index for faster lookups by owner
     __table_args__ = (
@@ -81,6 +82,7 @@ class Asset(Base, TimestampMixin):
     # Relationships
     portfolio = relationship("Portfolio", back_populates="assets")
     price_history = relationship("AssetPriceHistory", back_populates="asset", cascade="all, delete-orphan")
+    snapshot_holdings = relationship("PortfolioSnapshotHolding", back_populates="asset")
     
     # Add index for faster symbol lookups within a portfolio
     __table_args__ = (
@@ -110,6 +112,74 @@ class AssetPriceHistory(Base, TimestampMixin):
     
     def __repr__(self):
         return f"<AssetPriceHistory(id={self.id}, asset_id={self.asset_id}, price={self.price})>"
+
+
+class PortfolioSnapshot(Base):
+    """Daily aggregate snapshot of a portfolio."""
+
+    __tablename__ = "portfolio_snapshots"
+
+    id = Column(Integer, primary_key=True, index=True)
+    portfolio_id = Column(Integer, ForeignKey("portfolios.id", ondelete="CASCADE"), nullable=False)
+    snapshot_date = Column(Date, nullable=False)
+    total_value = Column(Float, nullable=False)
+    total_cost = Column(Float, nullable=False)
+    total_profit_loss = Column(Float, nullable=False)
+    total_profit_loss_percent = Column(Float, nullable=False)
+    asset_count = Column(Integer, nullable=False)
+    captured_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+
+    portfolio = relationship("Portfolio", back_populates="snapshots")
+    holdings = relationship(
+        "PortfolioSnapshotHolding",
+        back_populates="portfolio_snapshot",
+        cascade="all, delete-orphan",
+    )
+
+    __table_args__ = (
+        Index("idx_portfolio_snapshot_portfolio_date", "portfolio_id", "snapshot_date", unique=True),
+    )
+
+    def __repr__(self):
+        return (
+            f"<PortfolioSnapshot(id={self.id}, portfolio_id={self.portfolio_id}, "
+            f"snapshot_date={self.snapshot_date})>"
+        )
+
+
+class PortfolioSnapshotHolding(Base):
+    """Holding-level detail captured under a daily portfolio snapshot."""
+
+    __tablename__ = "portfolio_snapshot_holdings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    portfolio_snapshot_id = Column(
+        Integer,
+        ForeignKey("portfolio_snapshots.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    asset_id = Column(Integer, ForeignKey("assets.id", ondelete="SET NULL"), nullable=True)
+    symbol = Column(String(20), nullable=False)
+    quantity = Column(Float, nullable=False)
+    price = Column(Float, nullable=False)
+    current_value = Column(Float, nullable=False)
+    allocation_percent = Column(Float, nullable=False)
+    total_cost = Column(Float, nullable=False)
+    profit_loss = Column(Float, nullable=False)
+    profit_loss_percent = Column(Float, nullable=False)
+
+    portfolio_snapshot = relationship("PortfolioSnapshot", back_populates="holdings")
+    asset = relationship("Asset", back_populates="snapshot_holdings")
+
+    __table_args__ = (
+        Index("idx_snapshot_holding_snapshot_symbol", "portfolio_snapshot_id", "symbol"),
+    )
+
+    def __repr__(self):
+        return (
+            f"<PortfolioSnapshotHolding(id={self.id}, portfolio_snapshot_id={self.portfolio_snapshot_id}, "
+            f"symbol='{self.symbol}')>"
+        )
 
 class SentimentResult(Base, TimestampMixin):
     """Model for storing sentiment analysis results."""

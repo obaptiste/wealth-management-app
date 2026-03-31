@@ -1,7 +1,7 @@
 # schemas.py
 from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
 from typing import List, Optional, Dict, Any
-from datetime import datetime
+from datetime import date, datetime
 import re
 
 # Base user schemas
@@ -137,6 +137,48 @@ class PortfolioWithSummary(PortfolioOut):
     summary: Optional[PortfolioSummary] = None
     
     model_config = ConfigDict(from_attributes=True)
+
+
+class PortfolioSnapshotHoldingOut(BaseModel):
+    """Schema for a single holding captured in a portfolio snapshot."""
+
+    asset_id: Optional[int] = None
+    symbol: str
+    quantity: float
+    price: float
+    current_value: float
+    allocation_percent: float
+    total_cost: float
+    profit_loss: float
+    profit_loss_percent: float
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PortfolioSnapshotOut(BaseModel):
+    """Detailed portfolio snapshot response."""
+
+    portfolio_id: int
+    as_of: date
+    captured_at: datetime
+    summary: PortfolioSummary
+    holdings: List[PortfolioSnapshotHoldingOut]
+
+
+class HistoricalSnapshotPoint(BaseModel):
+    """Single chart point derived from a persisted portfolio snapshot."""
+
+    as_of: date
+    portfolio_value: float
+
+
+class PortfolioSnapshotHistoryResponse(BaseModel):
+    """Historical portfolio snapshot series."""
+
+    portfolio_id: int
+    from_date: date
+    to_date: date
+    points: List[HistoricalSnapshotPoint]
 
 # Sentiment analysis schemas
 class TextInput(BaseModel):

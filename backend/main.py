@@ -9,14 +9,28 @@ from sqlalchemy.future import select
 from sqlalchemy import func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.exc import IntegrityError
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 import yfinance as yf
 from functools import lru_cache
 from typing import List, Optional, Dict, Any, cast
 
 # Import local modules
 from .database import get_db_dependency
-from .models import User, Portfolio, Asset, SentimentResult, AssetPriceHistory, InsuranceProduct, PensionPlan, WatchlistItem
+from .models import (
+    User,
+    Portfolio,
+    Asset,
+    SentimentResult,
+    AssetPriceHistory,
+    InsuranceProduct,
+    PensionPlan,
+    WatchlistItem,
+)
+from .portfolio_snapshots import (
+    capture_portfolio_snapshot,
+    get_portfolio_snapshot_by_date,
+    get_portfolio_snapshot_history,
+)
 from .schemas import (
     UserCreate, UserOut, Token, PortfolioCreate, PortfolioOut,
     PortfolioUpdate, PortfolioWithSummary, PortfolioSummary, AssetCreate, AssetOut,
@@ -25,7 +39,8 @@ from .schemas import (
     ExchangeRatesResponse, InsuranceProductOut, InsuranceRecommendationRequest,
     InsuranceRecommendation, InsuranceRecommendationsResponse, PensionPlanCreate,
     PensionPlanUpdate, PensionPlanOut, PensionCalculationRequest, PensionCalculationResponse,
-    PensionProjection, WatchlistItemCreate, WatchlistItemOut, WatchlistItemSentiment
+    PensionProjection, WatchlistItemCreate, WatchlistItemOut, WatchlistItemSentiment,
+    PortfolioSnapshotOut, PortfolioSnapshotHistoryResponse,
 )
 from .auth import (
     authenticate_user, create_access_token, get_current_user,
@@ -43,6 +58,30 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+
+async def refresh_today_snapshot_after_asset_write(
+    db: AsyncSession,
+    portfolio_id: int,
+    current_user: User,
+) -> None:
+    """Best-effort daily snapshot refresh after portfolio mutations."""
+
+    try:
+        snapshot = await capture_portfolio_snapshot(db, portfolio_id, current_user.id)
+        if snapshot is not None:
+            logger.info(
+                "Refreshed portfolio snapshot for portfolio %s as of %s",
+                portfolio_id,
+                snapshot.as_of,
+            )
+    except Exception as exc:
+        await db.rollback()
+        logger.warning(
+            "Portfolio snapshot refresh failed for portfolio %s after asset mutation: %s",
+            portfolio_id,
+            exc,
+        )
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -468,6 +507,110 @@ async def delete_portfolio(
             detail="An error occurred while deleting the portfolio"
         )
 
+# Portfolio Snapshot Endpoints
+@app.post(
+    "/portfolios/{portfolio_id}/snapshots/capture",
+    response_model=PortfolioSnapshotOut,
+    tags=["Portfolio Snapshots"],
+)
+async def capture_portfolio_snapshot_endpoint(
+    portfolio_id: int = Path(..., ge=1),
+    db: AsyncSession = Depends(get_db_dependency),
+    current_user: User = Depends(get_current_active_user),
+):
+    """Capture or refresh today's persisted snapshot for a portfolio."""
+
+    try:
+        snapshot = await capture_portfolio_snapshot(db, portfolio_id, current_user.id)
+        if snapshot is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Portfolio not found",
+            )
+        return snapshot
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error capturing portfolio snapshot: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while capturing the portfolio snapshot",
+        )
+
+
+@app.get(
+    "/portfolios/{portfolio_id}/snapshots",
+    response_model=PortfolioSnapshotHistoryResponse,
+    tags=["Portfolio Snapshots"],
+)
+async def list_portfolio_snapshots(
+    portfolio_id: int = Path(..., ge=1),
+    days: int = Query(30, ge=1, le=365),
+    db: AsyncSession = Depends(get_db_dependency),
+    current_user: User = Depends(get_current_active_user),
+):
+    """Return persisted daily portfolio value history."""
+
+    try:
+        history = await get_portfolio_snapshot_history(
+            db,
+            portfolio_id,
+            current_user.id,
+            days=days,
+        )
+        if history is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Portfolio not found",
+            )
+        return history
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error listing portfolio snapshots: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching portfolio snapshot history",
+        )
+
+
+@app.get(
+    "/portfolios/{portfolio_id}/snapshots/{snapshot_date}",
+    response_model=PortfolioSnapshotOut,
+    tags=["Portfolio Snapshots"],
+)
+async def get_portfolio_snapshot(
+    portfolio_id: int = Path(..., ge=1),
+    snapshot_date: date = Path(...),
+    db: AsyncSession = Depends(get_db_dependency),
+    current_user: User = Depends(get_current_active_user),
+):
+    """Return a single persisted snapshot by portfolio and date."""
+
+    try:
+        snapshot = await get_portfolio_snapshot_by_date(
+            db,
+            portfolio_id,
+            current_user.id,
+            snapshot_date,
+        )
+        if snapshot is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Portfolio snapshot not found",
+            )
+        return snapshot
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching portfolio snapshot: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while fetching the portfolio snapshot",
+        )
+
+
 # Asset Management Endpoints
 @app.post("/portfolios/{portfolio_id}/assets", response_model=AssetOut, tags=["Assets"])
 async def create_asset(
@@ -522,6 +665,8 @@ async def create_asset(
             await db.commit()
         except Exception as e:
             logger.warning(f"Could not fetch current price for {new_asset.symbol}: {str(e)}")
+
+        await refresh_today_snapshot_after_asset_write(db, portfolio_id, current_user)
         
         return new_asset
     except HTTPException:
@@ -749,6 +894,8 @@ async def update_asset(
         await db.commit()
         await db.refresh(asset)
         logger.info(f"Asset updated: {asset.symbol}")
+
+        await refresh_today_snapshot_after_asset_write(db, portfolio_id, current_user)
         
         return asset
     except HTTPException:
@@ -803,6 +950,8 @@ async def delete_asset(
         await db.delete(asset)
         await db.commit()
         logger.info(f"Asset deleted: {asset.symbol}")
+
+        await refresh_today_snapshot_after_asset_write(db, portfolio_id, current_user)
     except HTTPException:
         # Re-raise HTTP exceptions
         raise

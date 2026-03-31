@@ -170,6 +170,7 @@ Future dashboard or watchlist charts can reuse the same adapted sentiment series
 ---
 
 ### [2026-03-27] Construct primary sentiment result directly instead of routing through normalizeSentimentResult
+
 Context:
 `loadPrimarySentiment` in `dashboard/data.ts` computed a net score via `(positive - negative) / 100`, producing a value in `[-1, 1]`, then passed it to `normalizeSentimentResult`. That function internally calls `normalizeSentimentScore`, which treats any value in `[0, 1]` as a raw model probability and remaps it to `[-1, 1]` via `(score * 2) - 1`. This corrupted all non-negative net sentiment scores.
 
@@ -185,6 +186,7 @@ Impact:
 ---
 
 ### [2026-03-27] Fetch sentiment history once per dashboard load
+
 Context:
 `loadPrimarySentiment` and `loadSentimentTrend` in `dashboard/data.ts` each independently called `apiClient.getSentimentHistory(symbol, 7)`, producing two identical HTTP requests per dashboard render.
 
@@ -200,6 +202,7 @@ Impact:
 ---
 
 ### [2026-03-29] Treat watchlist data as an optional dashboard enhancement until the backend lands
+
 Context:
 Task-008 needed a dashboard watchlist signal panel, but the current branch still lacks the watchlist ORM, schemas, endpoints, and migration work being developed separately.
 
@@ -215,6 +218,7 @@ Impact:
 ---
 
 ### [2026-03-29] Rank watchlist candidates before trimming dashboard panel items
+
 Context:
 The dashboard watchlist panel is intentionally limited to a few symbols, but the backend returns watchlist rows oldest-first. Trimming the raw response before ranking would hide newer or stronger signals once the watchlist grows past the panel limit.
 
@@ -230,6 +234,7 @@ Impact:
 ---
 
 ### [2026-03-29] Treat backend watchlist sentiment scores as already normalized
+
 Context:
 The backend watchlist endpoint returns `latest_sentiment.score` in `[-1, 1]`, derived directly from FinBERT sentiment plus confidence. Reusing `normalizeSentimentResult()` on that payload would incorrectly remap non-negative scores as if they were raw probabilities.
 
@@ -241,6 +246,41 @@ Watchlist endpoint payloads are not the same contract as raw model outputs. A de
 
 Impact:
 Embedded watchlist sentiment now produces correct score direction and strength in both the dashboard panel and the `/watchlist` page, even before history enrichment is fetched.
+
+---
+
+### [2026-03-29] Use persisted daily portfolio snapshots, but keep sentiment history event-sourced
+
+Context:
+Task-010 required a concrete storage direction for historical chart data. The backend already has append-only `SentimentResult` rows and opportunistic `AssetPriceHistory` points, but no durable portfolio-level historical record.
+
+Decision:
+Adopt a hybrid model:
+
+- add persisted daily portfolio snapshot aggregates plus child holding snapshot rows for portfolio history
+- keep sentiment history derived from raw `SentimentResult` rows for now
+
+Reason:
+Portfolio charts need stable, user-trustworthy historical values that should not be recomputed from live market data. Sentiment history already has a workable append-only source of truth, so duplicating it into a second snapshot table now would add write complexity without a clear product payoff.
+
+Impact:
+The next implementation step should be a portfolio snapshot persistence layer and snapshot-backed read API. Sentiment chart APIs can continue aggregating raw sentiment rows until performance or product requirements justify a derived summary table.
+
+---
+
+### [2026-03-29] Capture portfolio history once per day via idempotent snapshot writes
+
+Context:
+Historical portfolio data needs a repeatable write strategy. The current code only stores asset price history opportunistically during reads and writes, which is not enough to reconstruct a consistent whole-portfolio state.
+
+Decision:
+Use one snapshot row per portfolio per day, with idempotent upsert semantics and child holding rows written alongside it. Prefer a scheduled daily capture job, with manual backfill support for older data.
+
+Reason:
+This keeps storage predictable, avoids duplicated same-day rows, and gives the system a clean "as of date" boundary for charts and comparisons. A scheduled job is safer than relying on random user traffic to create history.
+
+Impact:
+Future schema work should center on `portfolio_snapshots` and `portfolio_snapshot_holdings`, plus a daily capture job and backfill path. Frontend chart loaders should eventually read from those snapshot APIs instead of live holdings.
 
 ---
 

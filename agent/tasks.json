@@ -132,12 +132,27 @@
     "title": "Establish historical snapshot plan",
     "description": "Define how the app should store or simulate historical portfolio and sentiment snapshots for charting and comparisons.",
     "priority": "medium",
-    "status": "todo",
+    "status": "done",
     "dependsOn": ["task-003", "task-004"],
     "acceptanceCriteria": [
       "Snapshot model is described",
       "Storage direction is documented",
       "Trade-offs between mock and persistent history are explained"
-    ]
+    ],
+    "completedAt": "2026-03-29"
+  },
+  {
+    "id": "task-011",
+    "title": "Implement portfolio snapshot persistence layer",
+    "description": "Add persisted portfolio snapshot tables, a write path, and snapshot read APIs so portfolio history no longer depends on volatile live recomputation.",
+    "priority": "medium",
+    "status": "done",
+    "dependsOn": ["task-010"],
+    "acceptanceCriteria": [
+      "Portfolio snapshot tables and migration exist",
+      "Snapshot capture and history endpoints are available",
+      "Asset create, update, and delete refresh the current daily snapshot"
+    ],
+    "completedAt": "2026-03-31"
   }
 ]

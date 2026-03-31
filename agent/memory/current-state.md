@@ -173,14 +173,17 @@ A reviewer pass on task-006/task-007 identified four bugs. All are now fixed:
 - Fixed: replaced `normalizeSentimentResult` usage with a direct `SentimentResult` construction. A local `scoreToSentimentLabel` maps the already-normalized score to the domain label. The `normalizeSentimentScore` function is not called on trend-derived scores.
 
 **Bug 3 — duplicate API calls (efficiency)**
+
 - `loadPrimarySentiment` and `loadSentimentTrend` both independently called `apiClient.getSentimentHistory(symbol, 7)`, producing two identical requests per dashboard load.
 - Fixed: a single `loadSentimentHistory` fetch is performed in `loadDashboardData`; `derivePrimarySentiment` and `deriveSentimentTrend` both consume the same result.
 
 **Bug 4 — loss accent color invisible (UI)**
+
 - `DashboardSummaryCards.tsx` rendered negative `total_profit_loss` in `gray.500`, indistinguishable from neutral text.
 - Fixed: changed to `red.500`.
 
 **CLAUDE.md correction**
+
 - `CLAUDE.md` listed Prisma as the ORM; the actual backend uses SQLAlchemy + Alembic. Corrected.
 
 - Verification: `tsc --noEmit --skipLibCheck` filtered to `src/app/dashboard/data.ts` reports zero errors after fixes. All other tsc errors across the project are pre-existing "cannot find module" failures caused by `frontend/node_modules` not being installed in this environment. Full `npm install && npm run build` in `frontend/` is required to confirm a clean build in a real environment.
@@ -217,8 +220,18 @@ A reviewer pass on task-006/task-007 identified four bugs. All are now fixed:
 - Fixed dashboard watchlist selection in `frontend/src/app/dashboard/data.ts`: the loader now ranks the full watchlist first, then fetches history for the top symbols instead of permanently trimming to the oldest four entries.
 - Verification passes for targeted ESLint, `npm run build`, and `./node_modules/.bin/tsc --noEmit` in `frontend/`.
 
+### 21. Historical snapshot plan is now defined (task-010, 2026-03-29)
+
+- Added `agent/memory/historical-snapshot-plan.md` as the canonical design note for historical portfolio and sentiment data.
+- The recommended direction is:
+  - persist daily portfolio-level snapshots in a dedicated aggregate table
+  - persist child holding snapshot rows for allocation-over-time and comparison views
+  - keep sentiment history derived from raw `SentimentResult` rows for now instead of introducing a second sentiment snapshot table
+- The plan explicitly documents the write direction (daily scheduled snapshot job with idempotent upsert), read direction (snapshot-backed portfolio chart API), fallback behavior, and the trade-offs between mock and persistent history.
+- This task is documentation-only; no schema or API changes were made yet.
+
 ## Likely priorities (updated)
 
-1. Establish historical snapshot plan (task-010)
+1. Implement the portfolio snapshot persistence layer described in `agent/memory/historical-snapshot-plan.md`
 2. Review the frontend auth flow against the backend runtime contract beyond compile-time alignment
-3. Validate the watchlist flow in a live authenticated environment once the backend dependencies are available
+3. Validate the watchlist flow in a live authenticated environment
