@@ -55,13 +55,16 @@ export default function PortfolioDetailPage() {
     // History is non-critical: fetch independently so a slow or failing
     // /snapshots response never delays the summary or asset list.
     const fetchHistory = async () => {
+      // Clear immediately so navigating between portfolios never shows
+      // a previous portfolio's chart while the new request is in flight.
+      setHistoryPoints([]);
       try {
         const data = await apiClient.getPortfolioSnapshotHistory(portfolioId, 30);
         setHistoryPoints(toChartPoints(data));
       } catch (err) {
         // Log so unexpected failures (5xx, schema errors) are visible in dev tools
         console.warn("Portfolio snapshot history unavailable:", err);
-        // Degrade silently — empty state is shown instead of blocking the page
+        // historyPoints is already [] — empty state is shown
       }
     };
 
