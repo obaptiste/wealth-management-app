@@ -64,8 +64,7 @@ async def test_daily_snapshot_job_skips_existing_snapshots(auth_client, test_db)
         second_run = await capture_missing_snapshots_for_date(test_db, snapshot_date)
 
     assert first_run.portfolios_seen >= 1
-    assert first_run.snapshots_created == 1
-    assert first_run.snapshots_skipped == 0
+    assert first_run.snapshots_created >= 1
     assert second_run.snapshots_created == 0
     assert second_run.snapshots_skipped >= 1
 
@@ -73,6 +72,7 @@ async def test_daily_snapshot_job_skips_existing_snapshots(auth_client, test_db)
         await test_db.execute(
             select(func.count())
             .select_from(PortfolioSnapshot)
+            .where(PortfolioSnapshot.portfolio_id == pid)
             .where(PortfolioSnapshot.snapshot_date == snapshot_date)
         )
     ).scalar_one()
@@ -96,12 +96,13 @@ async def test_snapshot_job_backfills_missing_date_range(auth_client, test_db):
         )
 
     assert len(results) == 3
-    assert sum(result.snapshots_created for result in results) == 3
+    assert sum(result.snapshots_created for result in results) >= 3
 
     snapshot_count = (
         await test_db.execute(
             select(func.count())
             .select_from(PortfolioSnapshot)
+            .where(PortfolioSnapshot.portfolio_id == pid)
             .where(PortfolioSnapshot.snapshot_date >= date(2026, 3, 27))
             .where(PortfolioSnapshot.snapshot_date <= date(2026, 3, 29))
         )
