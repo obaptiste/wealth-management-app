@@ -46,16 +46,14 @@ async def get_db():
         async def endpoint(db: AsyncSession = Depends(get_db)):
             # Use db here
     """
-    session = async_session_factory()
-    try:
-        yield session
-        # No commit here - it should be explicitly called when needed
-    except Exception as e:
-        logger.error(f"Database session error: {str(e)}")
-        session.rollback()
-        raise
-    finally:
-        session.close()
+    async with async_session_factory() as session:
+        try:
+            yield session
+            # No commit here - it should be explicitly called when needed
+        except Exception as e:
+            logger.error(f"Database session error: {str(e)}")
+            await session.rollback()
+            raise
 
 # For FastAPI dependency injection
 async def get_db_dependency():
