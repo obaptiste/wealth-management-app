@@ -2,10 +2,9 @@
 
 ## Immediate next steps
 
-- Wire the frontend portfolio history views to the snapshot APIs added in `backend/main.py`
-- Exercise the new snapshot job path in a real environment with one dedicated scheduler process
 - Review the runtime auth flow end-to-end now that the compile/build contract is aligned with `/auth/token` and `/auth/me`
-- Validate the watchlist flow in a live authenticated environment
+- Exercise the snapshot job path in a real environment with one dedicated scheduler process
+- Validate the watchlist and portfolio snapshot flows in a live authenticated environment
 
 ## What is blocked
 
@@ -18,6 +17,7 @@
 - The live `/watchlist` runtime contract should be exercised with real authenticated requests, especially add/remove flows and 401 handling
 - Snapshot capture timing should be validated against product expectations now that the scheduler defaults to 22:00 UTC via environment configuration
 - The optional dedicated scheduler process needs deployment-level wiring in the real environment
+- The new snapshot comparison endpoint should be exercised with real persisted snapshot data, especially the “latest two snapshots” default behavior and 404 handling for portfolios with fewer than two captures
 - `config.py`: `is_production` is a method but used as a property in `main.py` — potential runtime bug
 
 ## What can be deferred

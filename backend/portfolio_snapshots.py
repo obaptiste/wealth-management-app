@@ -17,7 +17,10 @@ from .models import (
 )
 from .schemas import (
     HistoricalSnapshotPoint,
+    PortfolioSnapshotComparisonOut,
+    PortfolioSnapshotComparisonSummaryOut,
     PortfolioSnapshotHistoryResponse,
+    PortfolioSnapshotHoldingDeltaOut,
     PortfolioSnapshotHoldingOut,
     PortfolioSnapshotOut,
     PortfolioSummary,
@@ -315,3 +318,170 @@ async def get_portfolio_snapshot_by_date(
         return None
 
     return build_snapshot_response(snapshot)
+
+
+async def get_portfolio_snapshot_comparison(
+    db: AsyncSession,
+    portfolio_id: int,
+    owner_id: int,
+    *,
+    current_date: Optional[date] = None,
+    previous_date: Optional[date] = None,
+) -> Optional[PortfolioSnapshotComparisonOut]:
+    """Compare two persisted snapshots for the same portfolio.
+
+    If dates are omitted, compare the latest snapshot against the most recent
+    earlier snapshot.
+    """
+
+    portfolio = await get_owned_portfolio(db, portfolio_id, owner_id)
+    if portfolio is None:
+        return None
+
+    if current_date is not None and previous_date is not None and previous_date >= current_date:
+        raise ValueError("previous_date must be earlier than current_date")
+
+    if current_date is None:
+        current_result = await db.execute(
+            select(PortfolioSnapshot)
+            .options(selectinload(PortfolioSnapshot.holdings))
+            .where(PortfolioSnapshot.portfolio_id == portfolio_id)
+            .order_by(PortfolioSnapshot.snapshot_date.desc())
+            .limit(1)
+        )
+        current_snapshot = current_result.scalars().first()
+    else:
+        current_result = await db.execute(
+            select(PortfolioSnapshot)
+            .options(selectinload(PortfolioSnapshot.holdings))
+            .where(PortfolioSnapshot.portfolio_id == portfolio_id)
+            .where(PortfolioSnapshot.snapshot_date == current_date)
+            .limit(1)
+        )
+        current_snapshot = current_result.scalars().first()
+
+    if current_snapshot is None:
+        return None
+
+    if previous_date is None:
+        previous_result = await db.execute(
+            select(PortfolioSnapshot)
+            .options(selectinload(PortfolioSnapshot.holdings))
+            .where(PortfolioSnapshot.portfolio_id == portfolio_id)
+            .where(PortfolioSnapshot.snapshot_date < current_snapshot.snapshot_date)
+            .order_by(PortfolioSnapshot.snapshot_date.desc())
+            .limit(1)
+        )
+        previous_snapshot = previous_result.scalars().first()
+    else:
+        previous_result = await db.execute(
+            select(PortfolioSnapshot)
+            .options(selectinload(PortfolioSnapshot.holdings))
+            .where(PortfolioSnapshot.portfolio_id == portfolio_id)
+            .where(PortfolioSnapshot.snapshot_date == previous_date)
+            .limit(1)
+        )
+        previous_snapshot = previous_result.scalars().first()
+
+    if previous_snapshot is None:
+        return None
+
+    previous_holdings = {
+        holding.symbol: holding for holding in previous_snapshot.holdings
+    }
+    current_holdings = {
+        holding.symbol: holding for holding in current_snapshot.holdings
+    }
+
+    holding_deltas: list[PortfolioSnapshotHoldingDeltaOut] = []
+    for symbol in sorted(set(previous_holdings) | set(current_holdings)):
+        current_holding = current_holdings.get(symbol)
+        previous_holding = previous_holdings.get(symbol)
+
+        current_quantity = float(current_holding.quantity) if current_holding else 0.0
+        previous_quantity = float(previous_holding.quantity) if previous_holding else 0.0
+        current_price = float(current_holding.price) if current_holding else 0.0
+        previous_price = float(previous_holding.price) if previous_holding else 0.0
+        current_value = float(current_holding.current_value) if current_holding else 0.0
+        previous_value = float(previous_holding.current_value) if previous_holding else 0.0
+        current_allocation_percent = (
+            float(current_holding.allocation_percent) if current_holding else 0.0
+        )
+        previous_allocation_percent = (
+            float(previous_holding.allocation_percent) if previous_holding else 0.0
+        )
+        current_profit_loss = float(current_holding.profit_loss) if current_holding else 0.0
+        previous_profit_loss = float(previous_holding.profit_loss) if previous_holding else 0.0
+
+        if previous_holding is None:
+            status = "added"
+        elif current_holding is None:
+            status = "removed"
+        elif (
+            abs(current_value - previous_value) > 1e-6
+            or abs(current_quantity - previous_quantity) > 1e-6
+            or abs(current_price - previous_price) > 1e-6
+            or abs(current_allocation_percent - previous_allocation_percent) > 1e-6
+        ):
+            status = "changed"
+        else:
+            status = "unchanged"
+
+        holding_deltas.append(
+            PortfolioSnapshotHoldingDeltaOut(
+                asset_id=current_holding.asset_id if current_holding else previous_holding.asset_id,
+                symbol=symbol,
+                status=status,
+                current_quantity=current_quantity,
+                previous_quantity=previous_quantity,
+                quantity_change=current_quantity - previous_quantity,
+                current_price=current_price,
+                previous_price=previous_price,
+                price_change=current_price - previous_price,
+                current_value=current_value,
+                previous_value=previous_value,
+                value_change=current_value - previous_value,
+                current_allocation_percent=current_allocation_percent,
+                previous_allocation_percent=previous_allocation_percent,
+                allocation_percent_change=current_allocation_percent - previous_allocation_percent,
+                current_profit_loss=current_profit_loss,
+                previous_profit_loss=previous_profit_loss,
+                profit_loss_change=current_profit_loss - previous_profit_loss,
+            )
+        )
+
+    ordered_deltas = sorted(
+        holding_deltas,
+        key=lambda holding: abs(holding.value_change),
+        reverse=True,
+    )
+
+    value_change = float(current_snapshot.total_value) - float(previous_snapshot.total_value)
+    previous_total_value = float(previous_snapshot.total_value)
+    value_change_percent = (
+        (value_change / previous_total_value) * 100 if previous_total_value > 0 else 0.0
+    )
+
+    return PortfolioSnapshotComparisonOut(
+        portfolio_id=portfolio_id,
+        current_as_of=current_snapshot.snapshot_date,
+        previous_as_of=previous_snapshot.snapshot_date,
+        summary=PortfolioSnapshotComparisonSummaryOut(
+            current_value=float(current_snapshot.total_value),
+            previous_value=float(previous_snapshot.total_value),
+            value_change=value_change,
+            value_change_percent=value_change_percent,
+            current_cost=float(current_snapshot.total_cost),
+            previous_cost=float(previous_snapshot.total_cost),
+            cost_change=float(current_snapshot.total_cost) - float(previous_snapshot.total_cost),
+            current_profit_loss=float(current_snapshot.total_profit_loss),
+            previous_profit_loss=float(previous_snapshot.total_profit_loss),
+            profit_loss_change=float(current_snapshot.total_profit_loss)
+            - float(previous_snapshot.total_profit_loss),
+            current_profit_loss_percent=float(current_snapshot.total_profit_loss_percent),
+            previous_profit_loss_percent=float(previous_snapshot.total_profit_loss_percent),
+            profit_loss_percent_change=float(current_snapshot.total_profit_loss_percent)
+            - float(previous_snapshot.total_profit_loss_percent),
+        ),
+        holdings=ordered_deltas,
+    )

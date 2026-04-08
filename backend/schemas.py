@@ -1,6 +1,6 @@
 # schemas.py
 from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Literal
 from datetime import date, datetime
 import re
 
@@ -179,6 +179,57 @@ class PortfolioSnapshotHistoryResponse(BaseModel):
     from_date: date
     to_date: date
     points: List[HistoricalSnapshotPoint]
+
+
+class PortfolioSnapshotComparisonSummaryOut(BaseModel):
+    """Summary deltas between two portfolio snapshots."""
+
+    current_value: float
+    previous_value: float
+    value_change: float
+    value_change_percent: float
+    current_cost: float
+    previous_cost: float
+    cost_change: float
+    current_profit_loss: float
+    previous_profit_loss: float
+    profit_loss_change: float
+    current_profit_loss_percent: float
+    previous_profit_loss_percent: float
+    profit_loss_percent_change: float
+
+
+class PortfolioSnapshotHoldingDeltaOut(BaseModel):
+    """Holding-level delta between two portfolio snapshots."""
+
+    asset_id: Optional[int] = None
+    symbol: str
+    status: Literal["added", "removed", "changed", "unchanged"]
+    current_quantity: float
+    previous_quantity: float
+    quantity_change: float
+    current_price: float
+    previous_price: float
+    price_change: float
+    current_value: float
+    previous_value: float
+    value_change: float
+    current_allocation_percent: float
+    previous_allocation_percent: float
+    allocation_percent_change: float
+    current_profit_loss: float
+    previous_profit_loss: float
+    profit_loss_change: float
+
+
+class PortfolioSnapshotComparisonOut(BaseModel):
+    """Detailed comparison between two persisted portfolio snapshots."""
+
+    portfolio_id: int
+    current_as_of: date
+    previous_as_of: date
+    summary: PortfolioSnapshotComparisonSummaryOut
+    holdings: List[PortfolioSnapshotHoldingDeltaOut]
 
 # Sentiment analysis schemas
 class TextInput(BaseModel):

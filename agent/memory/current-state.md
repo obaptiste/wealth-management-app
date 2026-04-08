@@ -246,8 +246,26 @@ A reviewer pass on task-006/task-007 identified four bugs. All are now fixed:
 - Documented the manual run, backfill, and dedicated scheduler env vars in `README.md`.
 - Fixed `backend/database.py` to bind `async_session_factory` to the SQLAlchemy engine so real runtime sessions, including the new snapshot job, can open database connections correctly.
 
+### 24. Frontend portfolio history wired to snapshot API (task-012, 2026-03-31)
+
+- `frontend/src/lib/api.ts` now exposes `getPortfolioSnapshotHistory(portfolioId, days?)` calling `GET /portfolios/{id}/snapshots?days=N` and `getPortfolioSnapshot(portfolioId, date)` calling `GET /portfolios/{id}/snapshots/{date}`.
+- `frontend/src/types/domain.ts` now exports `PortfolioSnapshotHistoryResponse { portfolio_id, from_date, to_date, points }` aligned with the backend schema.
+- `frontend/src/app/portfolio/[id]/page.tsx` now fetches snapshot history in parallel with portfolio detail, maps `HistoricalSnapshotPoint[]` to `DataPoint[]`, and renders `PerformanceChart` when history is available. The history fetch degrades silently to an empty chart if the endpoint returns an error or has no data yet.
+- `PerformanceChart` is loaded via `next/dynamic` with `ssr: false` to keep the d3 dependency client-only.
+- Verification: `tsc --noEmit --skipLibCheck` on changed files reports zero errors. Full `npm run build` requires `npm install` in `frontend/` which is not available in this environment.
+
+### 25. Snapshot comparison endpoint and UI hook are now live (task-014, 2026-03-31)
+
+- Added a backend comparison contract in `backend/schemas.py` and `GET /portfolios/{id}/snapshots/compare` in `backend/main.py`.
+- The compare endpoint supports explicit dates or defaults to the latest snapshot and the nearest earlier snapshot for the same portfolio.
+- `backend/portfolio_snapshots.py` now computes summary deltas plus holding-level changes with `added`, `removed`, `changed`, and `unchanged` statuses.
+- `frontend/src/types/domain.ts` now models snapshot holding rows and comparison payloads explicitly instead of treating snapshot holdings as `AssetWithPerformance[]`.
+- `frontend/src/lib/api.ts` now exposes `getPortfolioSnapshotComparison()`.
+- `frontend/src/app/portfolio/[id]/page.tsx` now renders a lightweight “Snapshot Comparison” section driven by the latest two available snapshots, alongside the snapshot history chart.
+- Verification passed for `python3 -m compileall backend`, targeted frontend ESLint, `./node_modules/.bin/tsc --noEmit`, and `npm run build` in `frontend/`. Backend pytest remains blocked here because `pytest` is not installed in the system Python.
+
 ## Likely priorities (updated)
 
-1. Wire the frontend portfolio history views to the new snapshot API
+1. Resolve the remaining task list entry for agent memory cleanup
 2. Review the frontend auth flow against the backend runtime contract beyond compile-time alignment
-3. Validate the watchlist flow in a live authenticated environment
+3. Validate the watchlist and portfolio snapshot flows in a live authenticated environment

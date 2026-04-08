@@ -1,11 +1,13 @@
 """
 Tests for persisted portfolio snapshot endpoints and same-day refresh behavior.
 """
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pytest
+
+from backend.portfolio_snapshots import capture_portfolio_snapshot
 
 
 async def _create_portfolio(auth_client, name="Snapshot Test Portfolio"):
@@ -133,3 +135,54 @@ async def test_snapshot_refreshes_to_zero_after_asset_delete(auth_client):
     assert detail["summary"]["total_cost"] == pytest.approx(0.0)
     assert detail["summary"]["total_profit_loss"] == pytest.approx(0.0)
     assert detail["holdings"] == []
+
+
+@pytest.mark.asyncio
+async def test_compare_portfolio_snapshots_returns_summary_and_holding_deltas(
+    auth_client,
+    test_db,
+):
+    portfolio = await _create_portfolio(auth_client, "Snapshot Compare Portfolio")
+    pid = portfolio["id"]
+    owner_id = portfolio["owner_id"]
+
+    with patch("yfinance.Ticker", return_value=_mock_yf_ticker(150.0)):
+        create_resp = await auth_client.post(f"/portfolios/{pid}/assets", json=_ASSET_PAYLOAD)
+    assert create_resp.status_code == 200, create_resp.text
+    asset_id = create_resp.json()["id"]
+
+    with patch("yfinance.Ticker", return_value=_mock_yf_ticker(150.0)):
+        await capture_portfolio_snapshot(
+            test_db,
+            pid,
+            owner_id,
+            snapshot_date=date(2026, 3, 30),
+        )
+
+    with patch("yfinance.Ticker", return_value=_mock_yf_ticker(160.0)):
+        update_resp = await auth_client.put(
+            f"/portfolios/{pid}/assets/{asset_id}",
+            json={"quantity": 20.0},
+        )
+    assert update_resp.status_code == 200, update_resp.text
+
+    with patch("yfinance.Ticker", return_value=_mock_yf_ticker(160.0)):
+        await capture_portfolio_snapshot(
+            test_db,
+            pid,
+            owner_id,
+            snapshot_date=date(2026, 3, 31),
+        )
+
+    compare_resp = await auth_client.get(
+        f"/portfolios/{pid}/snapshots/compare?current_date=2026-03-31&previous_date=2026-03-30"
+    )
+    assert compare_resp.status_code == 200, compare_resp.text
+    data = compare_resp.json()
+    assert data["portfolio_id"] == pid
+    assert data["current_as_of"] == "2026-03-31"
+    assert data["previous_as_of"] == "2026-03-30"
+    assert data["summary"]["value_change"] == pytest.approx(1700.0)
+    assert data["holdings"][0]["symbol"] == "AAPL"
+    assert data["holdings"][0]["status"] == "changed"
+    assert data["holdings"][0]["value_change"] == pytest.approx(1700.0)
