@@ -29,11 +29,14 @@ agent-check() {
     "$AGENT_MEMORY_DIR/architecture.md" \
     "$AGENT_MEMORY_DIR/current-state.md" \
     "$AGENT_MEMORY_DIR/decisions.md" \
+    "$AGENT_MEMORY_DIR/known-issues.md" \
     "$AGENT_MEMORY_DIR/next-steps.md" \
     "$AGENT_TASKS_FILE" \
     "$AGENT_PROMPTS_DIR/worker.md" \
     "$AGENT_PROMPTS_DIR/reviewer.md" \
-    "$AGENT_PROMPTS_DIR/planner.md"
+    "$AGENT_PROMPTS_DIR/planner.md" \
+    "$AGENT_PROMPTS_DIR/pr-writer.md" \
+    "$AGENT_DIR/agent-config.json"
   do
     if [[ ! -f "$file" ]]; then
       echo "Missing: $file"
