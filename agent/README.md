@@ -1,31 +1,78 @@
-# Agent Scaffold
+# Agent Harness (Local, Review-First)
 
-This folder contains the memory, task queue, and prompt files for a supervised agent workflow.
+This harness provides a **controlled, semi-autonomous workflow** for AI agents (Codex/Claude) and humans to collaborate safely on this repo.
 
-## Suggested first run
+## Goals
+- Maintain persistent project context (`agent/memory/*`).
+- Track task backlog with explicit metadata (`agent/tasks.json`).
+- Work **one task at a time** with clear acceptance criteria.
+- Require checks, logs, and human review before merge.
 
-Use this prompt in Claude Code or Codex:
+## Directory structure
 
-Read these files first:
+```txt
+agent/
+  memory/
+    project-summary.md
+    architecture.md
+    current-state.md
+    decisions.md
+    known-issues.md
+    next-steps.md
+  prompts/
+    planner.md
+    worker.md
+    reviewer.md
+    pr-writer.md
+  logs/
+    .gitkeep
+  runs/
+    .gitkeep
+  tasks.json
+  agent-config.json
+  README.md
+```
 
-- CLAUDE.md
-- agent/memory/project-summary.md
-- agent/memory/architecture.md
-- agent/memory/current-state.md
-- agent/memory/decisions.md
-- agent/memory/next-steps.md
-- agent/tasks.json
-- agent/prompts/worker.md
+## Root scripts
+Run from repo root:
 
-Then act as the implementation agent described in agent/prompts/worker.md.
+- `npm run agent:health` — validate harness structure + task schema.
+- `npm run agent:plan` — print task plan grouped by status.
+- `npm run agent:next` — output highest-priority unblocked safest task.
+- `npm run agent:log -- <task-id> <note>` — append run note.
+- `npm run agent:update-memory -- "<summary>"` — append update to `current-state.md`.
 
-Start with task-001 unless there is a clearly higher-priority unblocked task.
-Do not code immediately.
-First produce:
+Quality scripts:
+- `npm run lint`
+- `npm run test`
+- `npm run check`
+- `npm run fix`
+- `npm run format`
 
-1. task selected
-2. understanding
-3. files to inspect
-4. files to change
-5. plan
-6. risks / assumptions
+## Human review gate (required)
+Before merge:
+1. Confirm a valid task ID is referenced in PR.
+2. Confirm checks run are listed with honest outcomes.
+3. Review risk and rollback notes.
+4. Confirm memory/task files were updated if project state changed.
+5. Approve manually (no auto-merge from agent workflow).
+
+## Suggested daily workflow
+1. `npm run agent:health`
+2. `npm run agent:next`
+3. `npm run agent:log -- <task-id> "starting"`
+4. Implement only the selected task.
+5. Run checks (`npm run lint` + targeted tests).
+6. Update memory/tasks.
+7. `npm run agent:log -- <task-id> "completed checks"`
+8. Prepare PR using `.github/pull_request_template.md`.
+9. Human reviews and decides merge.
+
+## Optional external AI integration
+No external API is required for this harness.
+
+If future automation is added, keep it optional and environment-based (for example):
+- `OPENAI_API_KEY` (optional)
+- `ANTHROPIC_API_KEY` (optional)
+
+Never commit real keys. Use `.env` locally only.
