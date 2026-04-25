@@ -29,11 +29,15 @@ for (const file of required) {
 try {
   const tasks = JSON.parse(readFileSync('agent/tasks.json', 'utf-8'));
   for (const task of tasks) {
-    for (const key of ['id', 'title', 'type', 'priority', 'status', 'description', 'files', 'acceptanceCriteria', 'riskLevel', 'suggestedAgent', 'createdAt', 'updatedAt']) {
+    for (const key of ['id', 'title', 'type', 'priority', 'status', 'description', 'files', 'acceptanceCriteria', 'riskLevel', 'suggestedAgent', 'createdAt', 'updatedAt', 'dependsOn']) {
       if (!(key in task)) {
         ok = false;
         console.error(`TASK ${task.id ?? '<unknown>'} missing key: ${key}`);
       }
+    }
+    if (!Array.isArray(task.dependsOn) || task.dependsOn.some((dependency) => typeof dependency !== 'string')) {
+      ok = false;
+      console.error(`TASK ${task.id ?? '<unknown>'} has invalid dependsOn; expected an array of strings`);
     }
   }
 } catch (error) {
