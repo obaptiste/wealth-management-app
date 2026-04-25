@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "taskSelection": {
+    "priorityOrder": ["critical", "high", "medium", "low"],
+    "riskOrder": ["low", "medium", "high"],
+    "statusReady": ["todo", "in_progress"],
+    "maxConcurrentInProgress": 1
+  },
+  "reviewGate": {
+    "requiredBeforeMerge": true,
+    "requiredChecks": ["lint", "test"],
+    "requireTaskIdInPr": true,
+    "requireRollbackNotes": true
+  },
+  "memory": {
+    "requiredFiles": [
+      "project-summary.md",
+      "architecture.md",
+      "current-state.md",
+      "decisions.md",
+      "known-issues.md",
+      "next-steps.md"
+    ]
+  },
+  "logging": {
+    "runsDir": "agent/runs",
+    "logsDir": "agent/logs"
+  }
+}
