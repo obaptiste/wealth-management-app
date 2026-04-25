@@ -1,0 +1,20 @@
+# Minimal requirements for CI health-check tests.
+# Avoids installing heavy ML deps (tensorflow, torch, transformers)
+# that are not needed to import backend.main or run test_health.py.
+asyncpg
+email_validator
+fastapi
+httpx
+passlib[bcrypt]
+pydantic
+pydantic-settings
+pytest
+pytest-asyncio
+python-dotenv
+python-jose[cryptography]
+python-multipart
+sqlalchemy[asyncio]
+starlette
+tweepy
+uvicorn
+yfinance
