@@ -13,8 +13,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      # Use install instead of ci because frontend/package-lock.json is not committed.
-      - run: npm --prefix frontend install --no-audit --no-fund
+      # Use the committed frontend/package-lock.json for deterministic CI installs.
+      - run: npm --prefix frontend ci --no-audit --no-fund
       - run: npm --prefix frontend run lint
 
   backend-tests:
