@@ -1,37 +1,21 @@
 # Project Summary
 
-## Project
+## Product
+Wealth management application with a Next.js frontend and FastAPI backend for portfolio tracking, sentiment analysis, watchlist monitoring, and historical snapshots.
 
-Wealth management app
+## Primary goals
+- Give users accurate portfolio visibility and trend context.
+- Combine portfolio data with sentiment signals in a clear dashboard UX.
+- Keep backend contracts explicit and strongly typed on the frontend.
+- Ship in small, reviewable increments with verification.
 
-## Purpose
+## Tech stack
+- Frontend: Next.js App Router, React, TypeScript, Chakra UI.
+- Backend: FastAPI, SQLAlchemy, Alembic, PostgreSQL.
+- Tooling: ESLint, TypeScript compiler, Pytest, Docker Compose.
 
-Build a practical wealth dashboard that helps users understand their holdings, track portfolio changes, monitor sentiment signals, and make more informed decisions.
-
-## Core outcomes
-
-- View portfolio holdings clearly
-- Track watchlist assets
-- Ingest or mock market/sentiment data safely
-- Visualize trends and changes over time
-- Surface notable signals, catalysts, and risk markers
-- Create an architecture that can grow without turning into spaghetti
-
-## Constraints
-
-- Must remain readable and maintainable
-- Must work cleanly with Next.js and TypeScript
-- Must avoid breaking existing dashboard or auth flows
-- Must keep data contracts explicit
-- Must be deployable with a realistic modern web workflow
-
-## What good looks like
-
-A stable app with:
-
-- clean data flow
-- clear UI
-- reliable typing
-- modular services
-- isolated business logic
-- charts and dashboard summaries that are easy to interpret
+## Delivery constraints
+- Preserve server/client boundaries (server-first, `"use client"` only when needed).
+- Keep database access in backend/server-side code only.
+- Never commit secrets or `.env` files.
+- Prefer narrow PRs tied to one task ID at a time.

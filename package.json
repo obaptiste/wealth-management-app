@@ -1,4 +1,17 @@
 {
+  "private": true,
+  "scripts": {
+    "agent:plan": "node scripts/agent-plan.mjs",
+    "agent:next": "node scripts/agent-next-task.mjs",
+    "agent:health": "node scripts/agent-healthcheck.mjs",
+    "agent:log": "node scripts/agent-log.mjs",
+    "agent:update-memory": "node scripts/agent-update-memory.mjs",
+    "lint": "npm --prefix frontend run lint",
+    "test": "pytest backend/tests/test_health.py",
+    "check": "npm run agent:health && npm run lint && npm run test",
+    "fix": "npm --prefix frontend run lint -- --fix",
+    "format": "npx prettier --write \"agent/**/*.md\" \"agent/**/*.json\" \"scripts/**/*.mjs\" \".github/**/*.md\""
+  },
   "dependencies": {
     "@chakra-ui/color-mode": "^2.2.0",
     "@chakra-ui/theme": "^3.4.6",
