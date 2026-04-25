@@ -8,7 +8,7 @@
     "agent:update-memory": "node scripts/agent-update-memory.mjs",
     "lint": "npm --prefix frontend run lint",
     "test": "pytest backend/tests/test_health.py",
-    "check": "npm run agent:health && npm run lint",
+    "check": "npm run agent:health && npm run lint && npm run test",
     "fix": "npm --prefix frontend run lint -- --fix",
     "format": "npx prettier --write \"agent/**/*.md\" \"agent/**/*.json\" \"scripts/**/*.mjs\" \".github/**/*.md\""
   },
