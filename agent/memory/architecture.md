@@ -1,61 +1,23 @@
 # Architecture
 
-## Current architectural intent
+## System layout
+- `frontend/`: Next.js App Router app, typed services and components.
+- `backend/`: FastAPI API + SQLAlchemy models/migrations.
+- `agent/`: local AI harness (memory, prompts, tasks, run logs).
 
-The app should separate concerns into the following layers:
+## Runtime boundaries
+1. **Backend data and domain logic**
+   - Auth, portfolio CRUD, sentiment routes, snapshot jobs.
+   - SQLAlchemy models + Alembic migrations.
+2. **Frontend data access and shaping**
+   - `src/lib/api.ts` as typed HTTP client.
+   - `src/services/*` normalize/compose data for UI.
+3. **Frontend presentation**
+   - App Router pages + reusable components.
+   - UI should render pre-shaped data; avoid heavy business logic in components.
 
-### 1. Data access layer
-
-Responsible for fetching external or internal data.
-Examples:
-
-- market data providers
-- sentiment data providers
-- database queries
-
-### 2. Service layer
-
-Responsible for normalizing, transforming, and combining data.
-Examples:
-
-- sentiment scoring services
-- portfolio summary calculations
-- watchlist signal generation
-
-### 3. Application layer
-
-Responsible for orchestrating what the UI needs.
-Examples:
-
-- dashboard loaders
-- server actions
-- route-level data composition
-
-### 4. Presentation layer
-
-Responsible for rendering data cleanly.
-Examples:
-
-- cards
-- tables
-- charts
-- alerts
-- watchlist panels
-
-## Rules
-
-- Keep external API logic out of UI components
-- Keep transformation logic out of page files where possible
-- Prefer one source of truth for each major domain concept
-- Reuse shared types where practical
-- Make it easy to replace mock data with real data later
-
-## Candidate domains
-
-- portfolio
-- holdings
-- watchlist
-- sentiment
-- market data
-- alerts
-- historical snapshots
+## Design rules
+- Keep data contracts stable and explicit (backend schemas + frontend types).
+- Degrade safely when optional endpoints are unavailable.
+- Prefer deterministic, testable utility/service functions.
+- Keep task execution and project memory auditable under `agent/`.

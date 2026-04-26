@@ -126,3 +126,4 @@ wrapt
 yfinance
 zipp
 tf-keras
+tweepy

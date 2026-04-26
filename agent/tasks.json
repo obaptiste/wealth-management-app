@@ -1,214 +1,150 @@
 [
   {
-    "id": "task-001",
-    "title": "Audit current app structure",
-    "description": "Inspect the codebase and identify where portfolio logic, sentiment logic, data fetching, and dashboard rendering currently live.",
+    "id": "task-101",
+    "title": "Stabilize root verification commands",
+    "type": "ci",
     "priority": "high",
-    "status": "done",
-    "completedAt": "2026-03-20",
+    "status": "todo",
+    "description": "Ensure root-level check scripts run frontend lint/type/build and backend pytest with predictable output for agent and human review.",
+    "files": [
+      "package.json",
+      "scripts/agent-healthcheck.mjs",
+      ".github/workflows/ci.yml"
+    ],
+    "acceptanceCriteria": [
+      "Root commands for check/lint/test exist and are documented",
+      "Healthcheck script reports missing files and malformed task schema",
+      "CI workflow references the same verification intent"
+    ],
+    "riskLevel": "low",
+    "suggestedAgent": "codex",
     "dependsOn": [],
-    "acceptanceCriteria": [
-      "Relevant folders and files are identified",
-      "Current data flow is summarized",
-      "Risks or messy boundaries are documented in current-state.md"
-    ]
+    "createdAt": "2026-04-25",
+    "updatedAt": "2026-04-25"
   },
   {
-    "id": "task-002",
-    "title": "Define shared domain types",
-    "description": "Create or consolidate TypeScript types for holdings, watchlist items, sentiment results, portfolio summaries, and historical snapshots.",
+    "id": "task-102",
+    "title": "Add frontend typecheck and formatting baseline",
+    "type": "refactor",
     "priority": "high",
-    "status": "done",
-    "dependsOn": ["task-001"],
-    "acceptanceCriteria": [
-      "Shared types exist in a clear location",
-      "Major domain objects have explicit types",
-      "Existing consumers compile against the updated types"
+    "status": "todo",
+    "description": "Add explicit frontend typecheck/format commands and fix immediate script gaps so agents can run consistent TS validation.",
+    "files": [
+      "frontend/package.json",
+      "package.json",
+      "agent/README.md"
     ],
-    "completedAt": "2026-03-20"
+    "acceptanceCriteria": [
+      "Frontend has a typecheck command",
+      "Root format command is documented",
+      "Agent workflow references when to run lint vs typecheck"
+    ],
+    "riskLevel": "low",
+    "suggestedAgent": "codex",
+    "dependsOn": [
+      "task-101"
+    ],
+    "createdAt": "2026-04-25",
+    "updatedAt": "2026-04-25"
   },
   {
-    "id": "task-003",
-    "title": "Create sentiment service module",
-    "description": "Implement a service that accepts raw sentiment inputs and returns normalized sentiment data for the rest of the app.",
+    "id": "task-103",
+    "title": "Audit server/client boundaries in App Router pages",
+    "type": "security",
     "priority": "high",
-    "status": "done",
-    "dependsOn": ["task-002"],
-    "acceptanceCriteria": [
-      "Service file exists",
-      "Normalization rules are explicit",
-      "Output type is stable and documented",
-      "No UI component performs raw sentiment normalization"
+    "status": "todo",
+    "description": "Review `use client` usage and ensure data fetching/database interactions stay server-safe and API-driven.",
+    "files": [
+      "frontend/src/app/**/*.tsx",
+      "frontend/src/lib/api.ts",
+      "agent/memory/known-issues.md"
     ],
-    "completedAt": "2026-03-22"
+    "acceptanceCriteria": [
+      "Pages with unnecessary client directives are identified",
+      "Any risky boundary violations are documented",
+      "Fix plan or safe follow-up tasks are recorded"
+    ],
+    "riskLevel": "medium",
+    "suggestedAgent": "claude",
+    "dependsOn": [
+      "task-102"
+    ],
+    "createdAt": "2026-04-25",
+    "updatedAt": "2026-04-25"
   },
   {
-    "id": "task-004",
-    "title": "Create portfolio summary service",
-    "description": "Implement a service that calculates total value, allocation summaries, and simple gain/loss metrics from portfolio data.",
+    "id": "task-104",
+    "title": "Harden auth/session runtime validation",
+    "type": "bug",
     "priority": "high",
-    "status": "done",
-    "dependsOn": ["task-002"],
-    "acceptanceCriteria": [
-      "Summary calculations are isolated from UI",
-      "Output types are predictable",
-      "Edge cases for missing or partial data are handled"
+    "status": "todo",
+    "description": "Validate login, token refresh behavior, and authenticated route handling across frontend and backend contracts.",
+    "files": [
+      "frontend/src/contexts/AuthContext.tsx",
+      "frontend/src/lib/api.ts",
+      "backend/main.py",
+      "backend/auth.py"
     ],
-    "completedAt": "2026-03-26"
+    "acceptanceCriteria": [
+      "Auth contract mismatches are fixed or documented",
+      "Unauthorized states are handled predictably",
+      "Verification steps are reproducible"
+    ],
+    "riskLevel": "medium",
+    "suggestedAgent": "human",
+    "dependsOn": [
+      "task-101"
+    ],
+    "createdAt": "2026-04-25",
+    "updatedAt": "2026-04-25"
   },
   {
-    "id": "task-005",
-    "title": "Refactor dashboard data loading",
-    "description": "Move dashboard-level data orchestration into a dedicated loader or server-side composition layer.",
-    "priority": "high",
-    "status": "done",
-    "dependsOn": ["task-003", "task-004"],
-    "acceptanceCriteria": [
-      "Dashboard page no longer contains scattered business logic",
-      "Loader composes sentiment and portfolio data cleanly",
-      "Data dependencies are easier to understand"
-    ],
-    "completedAt": "2026-03-26"
-  },
-  {
-    "id": "task-006",
-    "title": "Build sentiment trend chart input adapter",
-    "description": "Create an adapter that converts sentiment history into chart-friendly data structures.",
+    "id": "task-105",
+    "title": "Backfill backend tests for watchlist and snapshots",
+    "type": "test",
     "priority": "medium",
-    "status": "done",
-    "dependsOn": ["task-003"],
-    "acceptanceCriteria": [
-      "Chart data mapping is isolated",
-      "Adapter handles empty or incomplete history safely",
-      "Presentation components receive ready-to-render data"
+    "status": "todo",
+    "description": "Increase regression coverage on watchlist endpoints and daily snapshot capture/backfill behavior.",
+    "files": [
+      "backend/tests/test_watchlist_new.py",
+      "backend/tests/test_snapshot_jobs_new.py",
+      "backend/portfolio_snapshots.py",
+      "backend/snapshot_jobs.py"
     ],
-    "completedAt": "2026-03-26"
+    "acceptanceCriteria": [
+      "Key watchlist success and error paths are tested",
+      "Snapshot backfill idempotency is tested",
+      "Test commands are captured in run logs"
+    ],
+    "riskLevel": "medium",
+    "suggestedAgent": "codex",
+    "dependsOn": [
+      "task-101"
+    ],
+    "createdAt": "2026-04-25",
+    "updatedAt": "2026-04-25"
   },
   {
-    "id": "task-007",
-    "title": "Build portfolio summary cards",
-    "description": "Create UI cards for total portfolio value, allocation highlights, and top-level movement metrics.",
+    "id": "task-106",
+    "title": "Document production environment variable contract",
+    "type": "docs",
     "priority": "medium",
-    "status": "done",
-    "dependsOn": ["task-004", "task-005"],
-    "acceptanceCriteria": [
-      "Cards render from typed summary data",
-      "No calculation logic is embedded in card components",
-      "Loading and empty states are sensible"
+    "status": "todo",
+    "description": "Create a clear environment variable matrix for frontend/backend runtime and optional AI integrations without exposing real keys.",
+    "files": [
+      "README.md",
+      "agent/README.md",
+      "backend/config.py"
     ],
-    "completedAt": "2026-03-26"
-  },
-  {
-    "id": "task-008",
-    "title": "Add watchlist signal panel",
-    "description": "Create a panel that shows selected watchlist assets with sentiment or catalyst-related indicators.",
-    "priority": "medium",
-    "status": "done",
-    "dependsOn": ["task-003", "task-005"],
     "acceptanceCriteria": [
-      "Watchlist panel uses normalized data",
-      "Signal logic is not hardcoded into presentation components",
-      "Panel can tolerate incomplete upstream data"
+      "Required vs optional environment variables are separated",
+      "No example includes real secret values",
+      "Ops notes include safe defaults where possible"
     ],
-    "startedAt": "2026-03-27",
-    "completedAt": "2026-03-29"
-  },
-  {
-    "id": "task-009",
-    "title": "Add verification commands and documentation",
-    "description": "Document the commands used to typecheck, lint, build, and test the app or relevant modules.",
-    "priority": "medium",
-    "status": "done",
-    "dependsOn": ["task-001"],
-    "acceptanceCriteria": [
-      "Verification commands are documented",
-      "Agent can report what checks should run after each task",
-      "Known command failures are noted if they exist"
-    ],
-    "completedAt": "2026-03-26"
-  },
-  {
-    "id": "task-010",
-    "title": "Establish historical snapshot plan",
-    "description": "Define how the app should store or simulate historical portfolio and sentiment snapshots for charting and comparisons.",
-    "priority": "medium",
-    "status": "done",
-    "dependsOn": ["task-003", "task-004"],
-    "acceptanceCriteria": [
-      "Snapshot model is described",
-      "Storage direction is documented",
-      "Trade-offs between mock and persistent history are explained"
-    ],
-    "completedAt": "2026-03-29"
-  },
-  {
-    "id": "task-011",
-    "title": "Implement portfolio snapshot persistence layer",
-    "description": "Add persisted portfolio snapshot tables, a write path, and snapshot read APIs so portfolio history no longer depends on volatile live recomputation.",
-    "priority": "medium",
-    "status": "done",
-    "dependsOn": ["task-010"],
-    "acceptanceCriteria": [
-      "Portfolio snapshot tables and migration exist",
-      "Snapshot capture and history endpoints are available",
-      "Asset create, update, and delete refresh the current daily snapshot"
-    ],
-    "completedAt": "2026-03-31"
-  },
-  {
-    "id": "task-012",
-    "title": "Wire frontend portfolio history to snapshot API",
-    "description": "Update the frontend portfolio and dashboard history loaders to consume persisted portfolio snapshots instead of rebuilding historical views from current live portfolio state.",
-    "priority": "high",
-    "status": "done",
-    "dependsOn": ["task-011"],
-    "completedAt": "2026-03-31",
-    "acceptanceCriteria": [
-      "Frontend API client exposes the portfolio snapshot history endpoint",
-      "Dashboard or portfolio history views read snapshot-backed series",
-      "Historical chart types stay aligned with the backend response shape"
-    ]
-  },
-  {
-    "id": "task-013",
-    "title": "Add scheduled and backfill snapshot capture",
-    "description": "Introduce a repeatable way to capture daily portfolio snapshots for inactive portfolios and backfill missing days for existing data.",
-    "priority": "high",
-    "status": "done",
-    "dependsOn": ["task-011"],
-    "acceptanceCriteria": [
-      "A documented scheduled capture path exists",
-      "Existing portfolios can be backfilled idempotently",
-      "Operational failure modes are logged clearly"
-    ],
-    "completedAt": "2026-03-31"
-  },
-  {
-    "id": "task-014",
-    "title": "Add snapshot comparison endpoint and UI hook",
-    "description": "Expose snapshot-to-snapshot holding deltas so the product can show allocation drift and portfolio changes between two dates.",
-    "priority": "medium",
-    "status": "done",
-    "dependsOn": ["task-011", "task-012"],
-    "acceptanceCriteria": [
-      "Backend can compare two snapshots for the same portfolio",
-      "Response includes summary deltas and holding-level changes",
-      "Frontend has a clear integration point for comparison views"
-    ],
-    "completedAt": "2026-03-31"
-  },
-  {
-    "id": "task-015",
-    "title": "Resolve agent memory merge conflicts",
-    "description": "Clean up the conflicted agent memory markdown files so current state, decisions, and next steps can be updated safely again.",
-    "priority": "medium",
-    "status": "done",
+    "riskLevel": "low",
+    "suggestedAgent": "claude",
     "dependsOn": [],
-    "acceptanceCriteria": [
-      "current-state.md, decisions.md, and next-steps.md no longer contain merge conflicts",
-      "Project memory reflects the completed snapshot persistence work",
-      "Future task and state updates can be made without conflict markers"
-    ],
-    "completedAt": "2026-03-31"
+    "createdAt": "2026-04-25",
+    "updatedAt": "2026-04-25"
   }
 ]

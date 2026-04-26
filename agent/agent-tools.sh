@@ -29,11 +29,14 @@ agent-check() {
     "$AGENT_MEMORY_DIR/architecture.md" \
     "$AGENT_MEMORY_DIR/current-state.md" \
     "$AGENT_MEMORY_DIR/decisions.md" \
+    "$AGENT_MEMORY_DIR/known-issues.md" \
     "$AGENT_MEMORY_DIR/next-steps.md" \
     "$AGENT_TASKS_FILE" \
     "$AGENT_PROMPTS_DIR/worker.md" \
     "$AGENT_PROMPTS_DIR/reviewer.md" \
-    "$AGENT_PROMPTS_DIR/planner.md"
+    "$AGENT_PROMPTS_DIR/planner.md" \
+    "$AGENT_PROMPTS_DIR/pr-writer.md" \
+    "$AGENT_DIR/agent-config.json"
   do
     if [[ ! -f "$file" ]]; then
       echo "Missing: $file"
@@ -307,6 +310,7 @@ _agent_set_task_status() {
 import json
 import os
 import sys
+from datetime import date
 
 task_id = sys.argv[1]
 new_status = sys.argv[2]
@@ -321,6 +325,7 @@ found = False
 for task in tasks:
     if task.get("id") == task_id:
         task["status"] = new_status
+        task["updatedAt"] = date.today().isoformat()
         if ts_key and ts_val:
             task[ts_key] = ts_val
         found = True
@@ -373,8 +378,8 @@ agent-start          # print worker prompt
 agent-review         # print reviewer prompt
 agent-plan           # print planner prompt
 agent-log            # create a dated session log
-agent-done ID        # mark a task done (sets completedAt)
-agent-in-progress ID # mark a task in progress (sets startedAt)
+agent-done ID        # mark a task done (sets completedAt and updatedAt)
+agent-in-progress ID # mark a task in progress (sets startedAt and updatedAt)
 agent-help           # show this help
 EOF
 }
