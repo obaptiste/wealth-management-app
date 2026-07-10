@@ -35,7 +35,12 @@ try {
         console.error(`TASK ${task.id ?? '<unknown>'} missing key: ${key}`);
       }
     }
+<<<<<<< HEAD
     if (!Array.isArray(task.dependsOn) || task.dependsOn.some((dependency) => typeof dependency !== 'string')) {
+=======
+
+    if (!Array.isArray(task.dependsOn) || !task.dependsOn.every((dependency) => typeof dependency === 'string')) {
+>>>>>>> origin/main
       ok = false;
       console.error(`TASK ${task.id ?? '<unknown>'} has invalid dependsOn; expected an array of strings`);
     }

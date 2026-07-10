@@ -22,6 +22,8 @@ poetry.lock
 .next/
 node_modules/
 package-lock.json
+# Allow the frontend lockfile to be committed for reproducible CI installs.
+!frontend/package-lock.json
 .Python
 build/
 develop-eggs/

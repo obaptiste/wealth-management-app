@@ -310,6 +310,7 @@ _agent_set_task_status() {
 import json
 import os
 import sys
+from datetime import date
 
 task_id = sys.argv[1]
 new_status = sys.argv[2]
@@ -324,6 +325,7 @@ found = False
 for task in tasks:
     if task.get("id") == task_id:
         task["status"] = new_status
+        task["updatedAt"] = date.today().isoformat()
         if ts_key and ts_val:
             task[ts_key] = ts_val
         found = True
@@ -376,8 +378,8 @@ agent-start          # print worker prompt
 agent-review         # print reviewer prompt
 agent-plan           # print planner prompt
 agent-log            # create a dated session log
-agent-done ID        # mark a task done (sets completedAt)
-agent-in-progress ID # mark a task in progress (sets startedAt)
+agent-done ID        # mark a task done (sets completedAt and updatedAt)
+agent-in-progress ID # mark a task in progress (sets startedAt and updatedAt)
 agent-help           # show this help
 EOF
 }
