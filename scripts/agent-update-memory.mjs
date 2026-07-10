@@ -1,14 +1,9 @@
 #!/usr/bin/env node
 import { readFileSync, writeFileSync } from 'node:fs';
 
-<<<<<<< HEAD
-const args = process.argv.slice(2);
-const summary = args.length > 0 ? args.join(' ') : 'No summary provided';
-=======
 const rawArgs = process.argv.slice(2);
 const summaryArgs = rawArgs[0] === '--' ? rawArgs.slice(1) : rawArgs;
 const summary = summaryArgs.length > 0 ? summaryArgs.join(' ') : 'No summary provided';
->>>>>>> origin/main
 const file = 'agent/memory/current-state.md';
 const existing = readFileSync(file, 'utf-8');
 const date = new Date().toISOString().slice(0, 10);
