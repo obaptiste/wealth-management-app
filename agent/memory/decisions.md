@@ -18,3 +18,21 @@ A uniform harness improves repeatability for both Codex and Claude while keeping
 
 **Impact**
 Agents can work semi-autonomously but must leave auditable artifacts (task status, run log, checks, memory updates) before review/merge.
+
+## Decision log format
+
+Use this format for future entries:
+
+### [YYYY-MM-DD] Decision title
+
+Context:
+What problem or question led to this decision?
+
+Decision:
+What was chosen?
+
+Reason:
+Why was this the best option?
+
+Impact:
+What files, flows, or future work does this affect?
